@@ -1,0 +1,38 @@
+{
+  "name": "multileveldown",
+  "version": "0.0.0",
+  "description": "multilevel implemented using leveldowns with reconnect support",
+  "main": "index.js",
+  "dependencies": {
+    "abstract-leveldown": "^2.1.0",
+    "brfs": "^1.4.0",
+    "duplexify": "^3.3.0",
+    "end-of-stream": "^1.1.0",
+    "levelup": "^0.19.0",
+    "pbs": "^1.3.0"
+  },
+  "devDependencies": {
+    "concat-stream": "^1.4.8",
+    "memdown": "^1.0.0",
+    "standard": "^3.7.0",
+    "tape": "^4.0.0"
+  },
+  "scripts": {
+    "test": "standard && tape test/*.js"
+  },
+  "browserify": {
+    "transform": [
+      "brfs"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mafintosh/multileveldown.git"
+  },
+  "author": "Mathias Buus (@mafintosh)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mafintosh/multileveldown/issues"
+  },
+  "homepage": "https://github.com/mafintosh/multileveldown"
+}
