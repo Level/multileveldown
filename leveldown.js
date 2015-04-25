@@ -89,28 +89,30 @@ Multilevel.prototype._pbs = function (encode, decode) {
 
   eos(encode, function () {
     self._encode = null
-
     if (self._retry) return
-
-    for (var i = 0; i < self._requests.length; i++) {
-      var req = self._requests[i]
-      if (req) req.cb(new Error('Connection to leader lost'))
-    }
-
-    for (var j = 0; j < self._iterators.length; j++) {
-      var ite = self._iterators[j]
-      if (ite) {
-        if (ite.cb) ite.cb(new Error('Connection to leader lost'))
-        else ite.self.end()
-      }
-    }
-
-    self._requests = []
-    self._iterators = []
+    self._clearRequests()
     self._flushMaybe()
   })
 
   return null
+}
+
+Multilevel.prototype._clearRequests = function () {
+  for (var i = 0; i < this._requests.length; i++) {
+    var req = this._requests[i]
+    if (req) req.cb(new Error('Connection to leader lost'))
+  }
+
+  for (var j = 0; j < this._iterators.length; j++) {
+    var ite = this._iterators[j]
+    if (ite) {
+      if (ite.cb) ite.cb(new Error('Connection to leader lost'))
+      else ite.self.end()
+    }
+  }
+
+  this._requests = []
+  this._iterators = []
 }
 
 Multilevel.prototype.createRpcStream = function (opts) {
@@ -195,6 +197,12 @@ Multilevel.prototype._batch = function (batch, opts, cb) {
 
   this._requests[id] = req
   if (this._encode) this._encode.batches(req)
+}
+
+Multilevel.prototype._close = function (cb) {
+  if (this._encode) this._encode.destroy()
+  this._clearRequests()
+  cb()
 }
 
 var Iterator = function (parent, opts) {
