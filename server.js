@@ -1,4 +1,5 @@
 var duplexify = require('duplexify')
+var eos = require('end-of-stream')
 var streams = require('./streams')
 
 var noop = function () {}
@@ -31,6 +32,8 @@ var pbs = function (down, encode, decode) {
   })
 
   decode.iterators(function (req, cb) {
+    while (iterators.length < req.id) iterators.push(null)
+
     var prev = iterators[req.id]
 
     if (prev) {
@@ -81,6 +84,13 @@ var pbs = function (down, encode, decode) {
 
     next()
     cb()
+  })
+
+  eos(decode, function () {
+    for (var i = 0; i < iterators.length; i++) {
+      if (!iterators[i]) continue
+      iterators[i].end()
+    }
   })
 
   return null
