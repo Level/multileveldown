@@ -6,6 +6,8 @@
 npm install multileveldown
 ```
 
+[![build status](http://img.shields.io/travis/mafintosh/multileveldown.svg?style=flat)](http://travis-ci.org/mafintosh/multileveldown)
+
 ## Usage
 
 Similar to [multilevel](https://github.com/juliangruber/multilevel) you can use this to share a levelup across multiple processes
