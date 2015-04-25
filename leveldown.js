@@ -90,14 +90,14 @@ Multilevel.prototype._pbs = function (encode, decode) {
   eos(encode, function () {
     self._encode = null
     if (self._retry) return
-    self._clearRequests()
+    self._clearRequests(false)
     self._flushMaybe()
   })
 
   return null
 }
 
-Multilevel.prototype._clearRequests = function () {
+Multilevel.prototype._clearRequests = function (closing) {
   for (var i = 0; i < this._requests.length; i++) {
     var req = this._requests[i]
     if (req) req.cb(new Error('Connection to leader lost'))
@@ -106,8 +106,8 @@ Multilevel.prototype._clearRequests = function () {
   for (var j = 0; j < this._iterators.length; j++) {
     var ite = this._iterators[j]
     if (ite) {
-      if (ite.cb) ite.cb(new Error('Connection to leader lost'))
-      else ite.self.end()
+      if (ite.cb && !closing) ite.cb(new Error('Connection to leader lost'))
+      ite.self.end()
     }
   }
 
@@ -201,7 +201,7 @@ Multilevel.prototype._batch = function (batch, opts, cb) {
 
 Multilevel.prototype._close = function (cb) {
   if (this._encode) this._encode.destroy()
-  this._clearRequests()
+  this._clearRequests(true)
   cb()
 }
 
@@ -257,7 +257,7 @@ Iterator.prototype.end = function (cb) {
   if (this._parent._encode) this._parent._encode.iterators(this._req)
   gc(this._parent._iterators, this._id)
   this._parent._flushMaybe()
-  cb()
+  if (cb) cb()
 }
 
 Multilevel.prototype._iterator = function (opts) {
