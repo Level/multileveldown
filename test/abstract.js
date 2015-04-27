@@ -14,7 +14,10 @@ function factory () {
 }
 
 require('abstract-leveldown/abstract/batch-test').all(factory, test, testCommon)
-require('abstract-leveldown/abstract/chained-batch-test').all(factory, test, testCommon)
+
+require('abstract-leveldown/abstract/chained-batch-test').setUp(factory, test, testCommon)
+require('abstract-leveldown/abstract/chained-batch-test').args(factory, test, testCommon)
+
 require('abstract-leveldown/abstract/close-test').close(factory, test, testCommon)
 require('abstract-leveldown/abstract/del-test').all(factory, test, testCommon)
 require('abstract-leveldown/abstract/get-test').all(factory, test, testCommon)
