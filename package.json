@@ -4,7 +4,7 @@
   "description": "multilevel implemented using leveldowns with reconnect support",
   "main": "index.js",
   "dependencies": {
-    "abstract-leveldown": "^2.1.0",
+    "abstract-leveldown": "^0.12.4",
     "brfs": "^1.4.0",
     "duplexify": "^3.3.0",
     "end-of-stream": "^1.1.0",
@@ -13,7 +13,6 @@
     "rimraf": "^2.3.2"
   },
   "devDependencies": {
-    "abstract-leveldown": "^2.1.0",
     "concat-stream": "^1.4.8",
     "memdown": "^1.0.0",
     "standard": "^3.7.0",
