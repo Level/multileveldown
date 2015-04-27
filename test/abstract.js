@@ -21,7 +21,11 @@ require('abstract-leveldown/abstract/chained-batch-test').args(factory, test, te
 require('abstract-leveldown/abstract/close-test').close(factory, test, testCommon)
 require('abstract-leveldown/abstract/del-test').all(factory, test, testCommon)
 require('abstract-leveldown/abstract/get-test').all(factory, test, testCommon)
-require('abstract-leveldown/abstract/iterator-test').all(factory, test, testCommon)
+
+require('abstract-leveldown/abstract/iterator-test').setUp(factory, test, testCommon)
+require('abstract-leveldown/abstract/iterator-test').args(factory, test, testCommon)
+require('abstract-leveldown/abstract/iterator-test').sequence(factory, test, testCommon)
+
 require('abstract-leveldown/abstract/leveldown-test').args(factory, test, testCommon)
 require('abstract-leveldown/abstract/open-test').all(factory, test, testCommon)
 require('abstract-leveldown/abstract/put-get-del-test').all(factory, test, testCommon)
