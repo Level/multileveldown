@@ -15,6 +15,14 @@ var decodeValue = function (val, enc) {
   return (enc === 'utf8' || enc === 'utf-8') ? val.toString() : val
 }
 
+var ref = function (r) {
+  if (r && r.ref) r.ref()
+}
+
+var unref = function (r) {
+  if (r && r.unref) r.unref()
+}
+
 var Multilevel = function (path, opts) {
   if (!(this instanceof Multilevel)) return new Multilevel(path, opts)
   abstract.AbstractLevelDOWN.call(this, path)
@@ -26,6 +34,7 @@ var Multilevel = function (path, opts) {
   this._iterators = []
   this._flush = []
   this._encode = null
+  this._ref = null
 }
 
 util.inherits(Multilevel, abstract.AbstractLevelDOWN)
@@ -35,8 +44,9 @@ var gc = function (list, i) {
   while (list.length && !list[list.length - 1]) list.pop()
 }
 
-Multilevel.prototype._pbs = function (encode, decode) {
+Multilevel.prototype._pbs = function (encode, decode, ref) {
   this._encode = encode
+  this._ref = ref
 
   for (var i = 0; i < this._requests.length; i++) {
     var req = this._requests[i]
@@ -88,11 +98,14 @@ Multilevel.prototype._pbs = function (encode, decode) {
   })
 
   eos(encode, function () {
+    self._ref = null
     self._encode = null
     if (self._retry) return
     self._clearRequests(false)
     self._flushMaybe()
   })
+
+  if (this.isFlushed()) unref(this._ref)
 
   return null
 }
@@ -116,10 +129,11 @@ Multilevel.prototype._clearRequests = function (closing) {
 }
 
 Multilevel.prototype.createRpcStream = function (opts) {
-  if (opts && opts.encode && opts.decode) return this._pbs(opts.encode, opts.decode)
+  if (!opts) opts = {}
+  if (opts.encode && opts.decode) return this._pbs(opts.encode, opts.decode, opts.ref || null)
   var encode = streams.Client.encode()
   var decode = streams.Server.decode()
-  this._pbs(encode, decode)
+  this._pbs(encode, decode, opts.ref || null)
   return duplexify(decode, encode)
 }
 
@@ -137,16 +151,18 @@ Multilevel.prototype.flush = function (cb) {
 Multilevel.prototype._flushMaybe = function () {
   if (!this.isFlushed()) return
   while (this._flush.length) this._flush.shift()()
+  unref(this._ref)
 }
 
-var nextId = function (list) {
+var nextId = function (list, self) {
   var id = list.indexOf(null)
   if (id === -1) id = list.push(null) - 1
+  if (id === 0) ref(self._ref)
   return id
 }
 
 Multilevel.prototype._put = function (key, value, opts, cb) {
-  var id = nextId(this._requests)
+  var id = nextId(this._requests, this)
   var req = {
     method: 'put',
     id: id,
@@ -160,7 +176,7 @@ Multilevel.prototype._put = function (key, value, opts, cb) {
 }
 
 Multilevel.prototype._get = function (key, opts, cb) {
-  var id = nextId(this._requests)
+  var id = nextId(this._requests, this)
   var req = {
     method: 'get',
     id: id,
@@ -174,7 +190,7 @@ Multilevel.prototype._get = function (key, opts, cb) {
 }
 
 Multilevel.prototype._del = function (key, opts, cb) {
-  var id = nextId(this._requests)
+  var id = nextId(this._requests, this)
   var req = {
     method: 'del',
     id: id,
@@ -187,7 +203,7 @@ Multilevel.prototype._del = function (key, opts, cb) {
 }
 
 Multilevel.prototype._batch = function (batch, opts, cb) {
-  var id = nextId(this._requests)
+  var id = nextId(this._requests, this)
   var req = {
     method: 'batch',
     id: id,
@@ -206,7 +222,7 @@ Multilevel.prototype._close = function (cb) {
 }
 
 var Iterator = function (parent, opts) {
-  this._id = nextId(parent._iterators)
+  this._id = nextId(parent._iterators, parent)
   this._parent = parent
   this._keyEncoding = opts.keyEncoding
   this._valueEncoding = opts.valueEncoding
