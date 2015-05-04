@@ -257,7 +257,7 @@ Iterator.prototype.end = function (cb) {
   if (this._parent._encode) this._parent._encode.iterators(this._req)
   gc(this._parent._iterators, this._id)
   this._parent._flushMaybe()
-  if (cb) cb()
+  if (cb) process.nextTick(cb)
 }
 
 Multilevel.prototype._iterator = function (opts) {

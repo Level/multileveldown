@@ -63,6 +63,7 @@ message Client {
       optional bytes lt = 5;
       optional bytes lte = 6;
       optional sint32 limit = 7;
+      optional bool reverse = 8;
     }
   }
 }
