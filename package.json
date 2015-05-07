@@ -4,7 +4,7 @@
   "description": "multilevel implemented using leveldowns with reconnect support",
   "main": "index.js",
   "dependencies": {
-    "abstract-leveldown": "^0.12.4",
+    "abstract-leveldown": "^2.1.4",
     "brfs": "^1.4.0",
     "duplexify": "^3.3.0",
     "end-of-stream": "^1.1.0",
