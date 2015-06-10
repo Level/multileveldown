@@ -54,7 +54,7 @@ var pbs = function (down, encode, decode) {
     var end = function () {
       ended = true
       iterators[req.id] = null
-      while (iterators.length && iterators[iterators.length - 1]) iterators.pop()
+      while (iterators.length && !iterators[iterators.length - 1]) iterators.pop()
       iterator.end(noop)
     }
 
