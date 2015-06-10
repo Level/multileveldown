@@ -12,9 +12,11 @@
     "pbs": "^1.3.2"
   },
   "devDependencies": {
+    "async": "^1.2.1",
     "concat-stream": "^1.4.8",
     "memdown": "^1.0.0",
     "standard": "^3.7.0",
+    "subleveldown": "^2.0.0",
     "tape": "^4.0.0"
   },
   "scripts": {
