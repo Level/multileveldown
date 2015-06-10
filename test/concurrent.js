@@ -6,7 +6,8 @@ var sublevel = require('subleveldown')
 var async = require('async')
 
 tape('concurrent read-stream of size 1', function (t) {
-  t.timeoutAfter(30000)
+  t.plan(2)
+  t.timeoutAfter(50000)
   var db = levelup('whatever', { db: memdown })
   var stream = multileveldown.server(db)
   var client = multileveldown.client()
@@ -25,7 +26,6 @@ tape('concurrent read-stream of size 1', function (t) {
     t.error(err, 'no err')
     stripe(ids, function (err) {
       t.error(err, 'no error striping')
-      t.end()
     })
   })
 
@@ -33,11 +33,9 @@ tape('concurrent read-stream of size 1', function (t) {
     if (!ids.length) { return callback() }
 
     var newIds = []
-    async.eachLimit(ids, 2, function (k, next) {
+    async.each(ids, function (k, next) {
       var sub = dbs[k]
-      console.log('before read')
       peek(sub, function (err, data) {
-        console.log('after read')
         if (err) { return next(err) }
 
         if (!data) {
@@ -45,10 +43,8 @@ tape('concurrent read-stream of size 1', function (t) {
         }
 
         newIds.push(k)
-        console.log('before delete')
         resilDelete(sub, data.key, function (err) {
           if (err) { return next(err) }
-          console.log('after delete')
           next()
         })
       })
