@@ -13,8 +13,13 @@
   },
   "devDependencies": {
     "concat-stream": "^1.4.8",
+    "each-limit": "^1.0.0",
+    "faker": "^3.0.0",
+    "level-hyper": "^1.0.0",
     "memdown": "^1.0.0",
+    "rimraf": "^2.4.1",
     "standard": "^3.7.0",
+    "subleveldown": "^2.0.0",
     "tape": "^4.0.0"
   },
   "scripts": {
