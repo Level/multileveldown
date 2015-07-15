@@ -41,7 +41,7 @@ tape('high concurrency and volume case over real server storing on disk', functi
   var db = level(loc)
   var called = 0
   var width = 100
-  var depth = 100
+  var depth = 50
   var total = width
   var ids = generateIds(width)
   var sublevels = {}
