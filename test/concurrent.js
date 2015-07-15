@@ -40,7 +40,7 @@ tape('high concurrency and volume case over real server storing on disk', functi
   var loc = __dirname + '/whatever.db'
   var db = level(loc)
   var called = 0
-  var width = 1000
+  var width = 100
   var depth = 100
   var total = width
   var ids = generateIds(width)
@@ -148,11 +148,10 @@ function generateBatch (id, len) {
       return {
         type: 'put',
         key: [id, process.hrtime().join('-')].join('-'),
-        value: {
-          name: faker.name.findName(),
-          email: faker.internet.email(),
-          description: faker.lorem.paragraphs()
-        }
+        value: Array.apply(null, new Array(len)).reduce(function (acc, _, i) {
+          acc['key' + i] = faker.lorem.paragraphs()
+          return acc
+        }, {})
       }
     })
 }
