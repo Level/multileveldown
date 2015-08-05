@@ -54,20 +54,20 @@ Multilevel.prototype._pbs = function (encode, decode, ref) {
 
     switch (req.method) {
       case 'put':
-      encode.puts(req)
-      break
+        encode.puts(req)
+        break
 
       case 'get':
-      encode.gets(req)
-      break
+        encode.gets(req)
+        break
 
       case 'del':
-      encode.deletes(req)
-      break
+        encode.deletes(req)
+        break
 
       case 'batch':
-      encode.batches(req)
-      break
+        encode.batches(req)
+        break
     }
   }
 
