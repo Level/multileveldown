@@ -33,6 +33,7 @@ function Multilevel (path, opts) {
   this._encode = lpstream.encode()
   this._streaming = null
   this._ref = null
+  this._db = null
 }
 
 util.inherits(Multilevel, abstract.AbstractLevelDOWN)
@@ -115,6 +116,10 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
   }
 }
 
+Multilevel.prototype.forward = function (down) {
+  this._db = down
+}
+
 Multilevel.prototype.isFlushed = function () {
   return !this._requests.length && !this._iterators.length
 }
@@ -141,6 +146,8 @@ Multilevel.prototype._clearRequests = function (closing) {
 }
 
 Multilevel.prototype._get = function (key, opts, cb) {
+  if (this._db) return this._db._get(key, opts, cb)
+
   var req = {
     tag: 0,
     id: 0,
@@ -154,6 +161,8 @@ Multilevel.prototype._get = function (key, opts, cb) {
 }
 
 Multilevel.prototype._put = function (key, value, opts, cb) {
+  if (this._db) return this._db._put(key, value, opts, cb)
+
   var req = {
     tag: 1,
     id: 0,
@@ -167,6 +176,8 @@ Multilevel.prototype._put = function (key, value, opts, cb) {
 }
 
 Multilevel.prototype._del = function (key, opts, cb) {
+  if (this._db) return this._db._del(key, opts, cb)
+
   var req = {
     tag: 2,
     id: 0,
@@ -179,6 +190,8 @@ Multilevel.prototype._del = function (key, opts, cb) {
 }
 
 Multilevel.prototype._batch = function (batch, opts, cb) {
+  if (this._db) return this._db._batch(batch, opts, cb)
+
   var req = {
     tag: 3,
     id: 0,
@@ -200,6 +213,8 @@ Multilevel.prototype._write = function (req) {
 }
 
 Multilevel.prototype._close = function (cb) {
+  if (this._db) return this._close(cb)
+
   this._clearRequests(true)
   if (this._streaming) {
     this._streaming.once('close', cb)
@@ -210,6 +225,7 @@ Multilevel.prototype._close = function (cb) {
 }
 
 Multilevel.prototype._iterator = function (opts) {
+  if (this._db) return this._iterator(opts)
   return new Iterator(this, opts)
 }
 
