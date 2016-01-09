@@ -1,69 +1,56 @@
-message Server {
-  repeated Callback callbacks = 1;
-  repeated Iterator iterators = 2;
+message Get {
+  required uint32 id = 1;
+  required bytes key = 2;
+}
 
-  message Callback {
-    required uint32 id = 1;
-    optional string error = 2;
+message Put {
+  required uint32 id = 1;
+  required bytes key = 2;
+  optional bytes value = 3;
+}
+
+message Delete {
+  required uint32 id = 1;
+  required bytes key = 2;
+}
+
+message Batch {
+  required uint32 id = 1;
+  repeated Operation ops = 2;
+
+  message Operation {
+    required string type = 1;
+    required bytes key = 2;
     optional bytes value = 3;
-  }
-
-  message Iterator {
-    required uint32 id = 1;
-    optional string error = 2;
-    optional bytes key = 3;
-    optional bytes value = 4;
   }
 }
 
-message Client {
-  repeated Put puts = 1;
-  repeated Get gets = 2;
-  repeated Delete deletes = 3;
-  repeated Batch batches = 4;
-  repeated Iterator iterators = 5;
+message Iterator {
+  required uint32 id = 1;
+  optional uint32 batch = 2;
+  optional Options options = 3;
 
-  message Get {
-    required uint32 id = 1;
-    required bytes key = 2;
+  message Options {
+    optional bool keys = 1;
+    optional bool values = 2;
+    optional bytes gt = 3;
+    optional bytes gte = 4;
+    optional bytes lt = 5;
+    optional bytes lte = 6;
+    optional sint32 limit = 7;
+    optional bool reverse = 8;
   }
+}
 
-  message Put {
-    required uint32 id = 1;
-    required bytes key = 3;
-    optional bytes value = 4;
-  }
+message Callback {
+  required uint32 id = 1;
+  optional string error = 2;
+  optional bytes value = 3;
+}
 
-  message Delete {
-    required uint32 id = 1;
-    required bytes key = 2;
-  }
-
-  message Batch {
-    required uint32 id = 1;
-    repeated Operation ops = 2;
-
-    message Operation {
-      required string type = 1;
-      required bytes key = 2;
-      optional bytes value = 3;
-    }
-  }
-
-  message Iterator {
-    required uint32 id = 1;
-    optional uint32 batch = 2;
-    optional Options options = 3;
-
-    message Options {
-      optional bool keys = 1;
-      optional bool values = 2;
-      optional bytes gt = 3;
-      optional bytes gte = 4;
-      optional bytes lt = 5;
-      optional bytes lte = 6;
-      optional sint32 limit = 7;
-      optional bool reverse = 8;
-    }
-  }
+message IteratorData {
+  required uint32 id = 1;
+  optional string error = 2;
+  optional bytes key = 3;
+  optional bytes value = 4;
 }

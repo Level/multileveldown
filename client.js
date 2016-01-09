@@ -6,27 +6,30 @@ module.exports = function (opts) {
   if (!opts) opts = {}
 
   var down
-  opts.db = function (path) {
+  opts.db = createLeveldown
+  opts.onflush = onflush
+  var db = levelup('multileveldown', opts)
+  db.createRpcStream = db.connect = connect
+
+  return db
+
+  function createLeveldown (path) {
     down = leveldown(path, opts)
     return down
   }
 
-  var db = levelup('no-location', opts)
+  function onflush () {
+    db.emit('flush')
+  }
 
-  db.createRpcStream =
-  db.connect = function (opts) {
-    if (opts && opts.encode && opts.decode && !down) throw new Error('db must be open to use raw encode/decode mode')
-    if (down) return down.createRpcStream(opts)
+  function connect (opts) {
+    if (down) return down.createRpcStream(opts, null)
 
     var proxy = duplexify()
     db.open(function () {
-      var stream = down.createRpcStream(opts)
-      proxy.setWritable(stream)
-      proxy.setReadable(stream)
+      down.createRpcStream(opts, proxy)
     })
 
     return proxy
   }
-
-  return db
 }

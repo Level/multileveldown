@@ -1,122 +1,150 @@
-var duplexify = require('duplexify')
+var lpstream = require('length-prefixed-stream')
 var eos = require('end-of-stream')
-var streams = require('./streams')
+var duplexify = require('duplexify')
+var messages = require('./messages')
 
-var noop = function () {}
+var DECODERS = [
+  messages.Get,
+  messages.Put,
+  messages.Delete,
+  messages.Batch,
+  messages.Iterator
+]
 
-var pbs = function (down, encode, decode) {
-  var iterators = []
+module.exports = function (db, opts) {
+  var decode = lpstream.decode()
+  var encode = lpstream.encode()
+  var stream = duplexify(decode, encode)
 
-  decode.puts(function (req, cb) {
-    down.put(req.key, req.value, function (err) {
-      encode.callbacks({id: req.id, error: err && err.message}, cb)
+  if (db.isOpen()) ready()
+  else db.open(ready)
+
+  return stream
+
+  function ready () {
+    var down = db.db
+    var iterators = []
+
+    eos(stream, function () {
+      while (iterators.length) {
+        var next = iterators.shift()
+        if (next) next.end()
+      }
     })
-  })
 
-  decode.gets(function (req, cb) {
-    down.get(req.key, {valueEncoding: 'binary'}, function (err, value) {
-      encode.callbacks({id: req.id, error: err && err.message, value: value}, cb)
+    decode.on('data', function (data) {
+      if (!data.length) return
+      var tag = data[0]
+      if (tag >= DECODERS.length) return
+
+      var dec = DECODERS[tag]
+      try {
+        var req = dec.decode(data, 1)
+      } catch (err) {
+        return
+      }
+
+      switch (tag) {
+        case 0: return onget(req)
+        case 1: return onput(req)
+        case 2: return ondel(req)
+        case 3: return onbatch(req)
+        case 4: return oniterator(req)
+      }
     })
-  })
 
-  decode.deletes(function (req, cb) {
-    down.del(req.key, function (err) {
-      encode.callbacks({id: req.id, error: err && err.message}, cb)
-    })
-  })
+    function callback (id, err, value) {
+      var msg = {id: id, error: err && err.message, value: value}
+      var buf = new Buffer(messages.Callback.encodingLength(msg) + 1)
+      buf[0] = 0
+      messages.Callback.encode(msg, buf, 1)
+      encode.write(buf)
+    }
 
-  decode.batches(function (req, cb) {
-    down.batch(req.ops, function (err) {
-      encode.callbacks({id: req.id, error: err && err.message}, cb)
-    })
-  })
+    function onput (req) {
+      down.put(req.key, req.value, function (err) {
+        callback(req.id, err, null)
+      })
+    }
 
-  decode.iterators(function (req, cb) {
-    while (iterators.length < req.id) iterators.push(null)
+    function onget (req) {
+      down.get(req.key, function (err, value) {
+        callback(req.id, err, value)
+      })
+    }
 
-    var prev = iterators[req.id]
+    function ondel (req) {
+      down.del(req.key, function (err) {
+        callback(req.id, err)
+      })
+    }
 
-    if (prev) {
+    function onbatch (req) {
+      down.batch(req.ops, function (err) {
+        callback(req.id, err)
+      })
+    }
+
+    function oniterator (req) {
+      while (iterators.length < req.id) iterators.push(null)
+
+      var prev = iterators[req.id]
+      if (!prev) prev = iterators[req.id] = new Iterator(down, req, encode)
+
       if (!req.batch) {
+        iterators[req.id] = null
         prev.end()
       } else {
         prev.batch = req.batch
         prev.next()
       }
-      return cb()
     }
-
-    var first = true
-    var nexting = false
-    var ended = false
-    var iterator = down.iterator(req.options)
-
-    var end = function () {
-      ended = true
-      iterators[req.id] = null
-      while (iterators.length && !iterators[iterators.length - 1]) iterators.pop()
-      iterator.end(noop)
-    }
-
-    var next = function () {
-      if (nexting || ended) return
-      if (!first && (!data.batch || data.error || (!data.key && !data.value))) return
-      first = false
-      nexting = true
-      iterator.next(function (err, key, value) {
-        nexting = false
-        data.error = err && err.message
-        data.key = key
-        data.value = value
-        data.batch--
-        encode.iterators(data, next)
-      })
-    }
-
-    var data = iterators[req.id] = {
-      id: req.id,
-      batch: req.batch,
-      key: null,
-      value: null,
-      next: next,
-      end: end
-    }
-
-    next()
-    cb()
-  })
-
-  eos(decode, function () {
-    for (var i = 0; i < iterators.length; i++) {
-      if (!iterators[i]) continue
-      iterators[i].end()
-    }
-  })
-
-  return null
+  }
 }
 
-module.exports = function (db, opts) {
-  if (opts && opts.encode && opts.decode) {
-    if (!db.isOpen()) throw new Error('db must be open to use raw encode/decode mode')
-    return pbs(db.db, opts.encode, opts.decode)
+function Iterator (down, req, encode) {
+  var self = this
+
+  this.batch = req.batch || 0
+
+  this._iterator = down.iterator(req.options)
+  this._encode = encode
+  this._send = send
+  this._nexting = false
+  this._first = true
+  this._ended = false
+  this._data = {
+    id: req.id,
+    error: null,
+    key: null,
+    value: null
   }
 
-  var encode = streams.Server.encode()
-  var decode = streams.Client.decode()
-
-  if (db.isOpen()) {
-    pbs(db.db, encode, decode)
-    return duplexify(decode, encode)
+  function send (err, key, value) {
+    self._nexting = false
+    self._data.error = err && err.message
+    self._data.key = key
+    self._data.value = value
+    self.batch--
+    var buf = new Buffer(messages.IteratorData.encodingLength(self._data) + 1)
+    buf[0] = 1
+    messages.IteratorData.encode(self._data, buf, 1)
+    encode.write(buf)
+    self.next()
   }
-
-  var stream = duplexify()
-
-  db.open(function () {
-    pbs(db.db, encode, decode)
-    stream.setWritable(decode)
-    stream.setReadable(encode)
-  })
-
-  return stream
 }
+
+Iterator.prototype.next = function () {
+  if (this._nexting || this._ended) return
+  if (!this._first && (!this.batch || this._data.error || (!this._data.key && !this._data.value))) return
+  this._first = false
+  this._nexting = true
+  this._iterator.next(this._send)
+}
+
+Iterator.prototype.end = function () {
+  this._ended = true
+  this._iterator.end(noop)
+}
+
+function noop () {}

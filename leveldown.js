@@ -2,282 +2,286 @@ var duplexify = require('duplexify')
 var abstract = require('abstract-leveldown')
 var util = require('util')
 var eos = require('end-of-stream')
-var streams = require('./streams')
+var ids = require('numeric-id-map')
+var lpstream = require('length-prefixed-stream')
+var messages = require('./messages')
 
-var noop = function () {}
+var ENCODERS = [
+  messages.Get,
+  messages.Put,
+  messages.Delete,
+  messages.Batch,
+  messages.Iterator
+]
 
-var decodeError = function (err) {
-  return err ? new Error(err) : null
-}
+var DECODERS = [
+  messages.Callback,
+  messages.IteratorData
+]
 
-var decodeValue = function (val, enc) {
-  if (!val) return undefined
-  return (enc === 'utf8' || enc === 'utf-8') ? val.toString() : val
-}
+module.exports = Multilevel
 
-var ref = function (r) {
-  if (r && r.ref) r.ref()
-}
-
-var unref = function (r) {
-  if (r && r.unref) r.unref()
-}
-
-var Multilevel = function (path, opts) {
+function Multilevel (path, opts) {
   if (!(this instanceof Multilevel)) return new Multilevel(path, opts)
   abstract.AbstractLevelDOWN.call(this, path)
 
   if (!opts) opts = {}
-
+  this._iterators = ids()
+  this._requests = ids()
   this._retry = !!opts.retry
-  this._requests = []
-  this._iterators = []
-  this._flush = []
-  this._encode = null
+  this._onflush = opts.onflush || noop
+  this._encode = lpstream.encode()
+  this._streaming = null
   this._ref = null
 }
 
 util.inherits(Multilevel, abstract.AbstractLevelDOWN)
 
-var gc = function (list, i) {
-  list[i] = null
-  while (list.length && !list[list.length - 1]) list.pop()
-}
-
-Multilevel.prototype._pbs = function (encode, decode, ref) {
-  this._encode = encode
-  this._ref = ref
-
-  for (var i = 0; i < this._requests.length; i++) {
-    var req = this._requests[i]
-    if (!req) continue
-
-    switch (req.method) {
-      case 'put':
-      encode.puts(req)
-      break
-
-      case 'get':
-      encode.gets(req)
-      break
-
-      case 'del':
-      encode.deletes(req)
-      break
-
-      case 'batch':
-      encode.batches(req)
-      break
-    }
-  }
-
-  for (var j = 0; j < this._iterators.length; j++) {
-    var ite = this._iterators[j]
-    if (!ite) continue
-    ite.options = ite.self._options
-    encode.iterators(ite)
-  }
+Multilevel.prototype.createRpcStream = function (opts, proxy) {
+  if (this._streaming) throw new Error('Only one rpc stream can be active')
+  if (!opts) opts = {}
+  this._ref = opts.ref || null
 
   var self = this
+  var encode = this._encode
+  var decode = lpstream.decode()
 
-  decode.callbacks(function (callback, cb) {
-    var req = self._requests[callback.id]
-    if (!req) return cb()
-    gc(self._requests, callback.id)
-    self._flushMaybe()
-    req.cb(decodeError(callback.error), decodeValue(callback.value, req.valueEncoding))
-    cb()
-  })
+  decode.on('data', function (data) {
+    if (!data.length) return
+    var tag = data[0]
+    if (tag >= DECODERS.length) return
 
-  decode.iterators(function (ite, cb) {
-    var req = self._iterators[ite.id]
-    if (!req) return cb()
-    req.pending.push(ite)
-    if (req.cb) req.self.next(req.cb)
-    cb()
-  })
+    var dec = DECODERS[tag]
+    try {
+      var res = dec.decode(data, 1)
+    } catch (err) {
+      return
+    }
 
-  eos(encode, function () {
-    self._ref = null
-    self._encode = null
-    if (self._retry) return
-    self._clearRequests(false)
+    switch (tag) {
+      case 0: return oncallback(res)
+      case 1: return oniteratordata(res)
+    }
+
     self._flushMaybe()
   })
 
-  if (this.isFlushed()) unref(this._ref)
+  if (!proxy) proxy = duplexify()
+  proxy.setWritable(decode)
+  proxy.setReadable(encode)
+  eos(proxy, cleanup)
+  this._streaming = proxy
+  return proxy
 
-  return null
-}
+  function cleanup () {
+    self._streaming = null
+    self._encode = lpstream.encode()
 
-Multilevel.prototype._clearRequests = function (closing) {
-  for (var i = 0; i < this._requests.length; i++) {
-    var req = this._requests[i]
-    if (req) req.cb(new Error('Connection to leader lost'))
-  }
+    if (!self._retry) {
+      self._clearRequests(false)
+      self._flushMaybe()
+      return
+    }
 
-  for (var j = 0; j < this._iterators.length; j++) {
-    var ite = this._iterators[j]
-    if (ite) {
-      if (ite.cb && !closing) ite.cb(new Error('Connection to leader lost'))
-      ite.self.end()
+    for (var i = 0; i < self._requests.length; i++) {
+      var req = self._requests.get(i)
+      if (!req) continue
+      self._write(req)
+    }
+
+    for (var j = 0; j < self._iterators.length; j++) {
+      var ite = self._iterators.get(j)
+      if (!ite) continue
+      ite.options = ite.iterator._options
+      self._write(ite)
     }
   }
 
-  this._requests = []
-  this._iterators = []
-}
+  function oniteratordata (res) {
+    var req = self._iterators.get(res.id)
+    if (!req) return
+    req.pending.push(res)
+    if (req.callback) req.iterator.next(req.callback)
+  }
 
-Multilevel.prototype.createRpcStream = function (opts) {
-  if (!opts) opts = {}
-  if (opts.encode && opts.decode) return this._pbs(opts.encode, opts.decode, opts.ref || null)
-  var encode = streams.Client.encode()
-  var decode = streams.Server.decode()
-  this._pbs(encode, decode, opts.ref || null)
-  return duplexify(decode, encode)
+  function oncallback (res) {
+    var req = self._requests.remove(res.id)
+    if (req) req.callback(decodeError(res.error), decodeValue(res.value, req.valueEncoding))
+  }
 }
 
 Multilevel.prototype.isFlushed = function () {
   return !this._requests.length && !this._iterators.length
 }
 
-// to allow someone using multileveldown to detect
-// when it is safe to shutdown the pipeline
-Multilevel.prototype.flush = function (cb) {
-  if (this.isFlushed()) return cb()
-  this._flush.push(cb)
-}
-
 Multilevel.prototype._flushMaybe = function () {
   if (!this.isFlushed()) return
-  while (this._flush.length) this._flush.shift()()
+  this._onflush()
   unref(this._ref)
 }
 
-var nextId = function (list, self) {
-  var id = list.indexOf(null)
-  if (id === -1) id = list.push(null) - 1
-  if (id === 0) ref(self._ref)
-  return id
-}
-
-Multilevel.prototype._put = function (key, value, opts, cb) {
-  var id = nextId(this._requests, this)
-  var req = {
-    method: 'put',
-    id: id,
-    key: key,
-    value: value,
-    cb: cb || noop
+Multilevel.prototype._clearRequests = function (closing) {
+  for (var i = 0; i < this._requests.length; i++) {
+    var req = this._requests.remove(i)
+    if (req) req.callback(new Error('Connection to leader lost'))
   }
 
-  this._requests[id] = req
-  if (this._encode) if (this._encode) this._encode.puts(req)
+  for (var j = 0; j < this._iterators.length; j++) {
+    var ite = this._iterators.remove(j)
+    if (ite) {
+      if (ite.callback && !closing) ite.callback(new Error('Connection to leader lost'))
+      ite.iterator.end()
+    }
+  }
 }
 
 Multilevel.prototype._get = function (key, opts, cb) {
-  var id = nextId(this._requests, this)
   var req = {
-    method: 'get',
-    id: id,
+    tag: 0,
+    id: 0,
     key: key,
-    valueEncoding: opts.valueEncoding,
-    cb: cb || noop
+    valueEncoding: opts.valueEncoding || (opts.asBuffer === false ? 'utf-8' : 'binary'),
+    callback: cb || noop
   }
 
-  this._requests[id] = req
-  if (this._encode) this._encode.gets(req)
+  req.id = this._requests.add(req)
+  this._write(req)
+}
+
+Multilevel.prototype._put = function (key, value, opts, cb) {
+  var req = {
+    tag: 1,
+    id: 0,
+    key: key,
+    value: value,
+    callback: cb || noop
+  }
+
+  req.id = this._requests.add(req)
+  this._write(req)
 }
 
 Multilevel.prototype._del = function (key, opts, cb) {
-  var id = nextId(this._requests, this)
   var req = {
-    method: 'del',
-    id: id,
+    tag: 2,
+    id: 0,
     key: key,
-    cb: cb || noop
+    callback: cb || noop
   }
 
-  this._requests[id] = req
-  if (this._encode) this._encode.deletes(req)
+  req.id = this._requests.add(req)
+  this._write(req)
 }
 
 Multilevel.prototype._batch = function (batch, opts, cb) {
-  var id = nextId(this._requests, this)
   var req = {
-    method: 'batch',
-    id: id,
+    tag: 3,
+    id: 0,
     ops: batch,
-    cb: cb || noop
+    callback: cb || noop
   }
 
-  this._requests[id] = req
-  if (this._encode) this._encode.batches(req)
+  req.id = this._requests.add(req)
+  this._write(req)
+}
+
+Multilevel.prototype._write = function (req) {
+  if (this._requests.length + this._iterators.length === 1) ref(this._ref)
+  var enc = ENCODERS[req.tag]
+  var buf = new Buffer(enc.encodingLength(req) + 1)
+  buf[0] = req.tag
+  enc.encode(req, buf, 1)
+  this._encode.write(buf)
 }
 
 Multilevel.prototype._close = function (cb) {
-  if (this._encode) this._encode.destroy()
   this._clearRequests(true)
-  cb()
-}
-
-var Iterator = function (parent, opts) {
-  this._id = nextId(parent._iterators, parent)
-  this._parent = parent
-  this._keyEncoding = opts.keyEncoding
-  this._valueEncoding = opts.valueEncoding
-  this._options = opts
-
-  var req = {
-    id: this._id,
-    batch: 32,
-    pending: [],
-    self: this,
-    prev: null,
-    options: opts,
-    cb: null
+  if (this._streaming) {
+    this._streaming.once('close', cb)
+    this._streaming.destroy()
+  } else {
+    process.nextTick(cb)
   }
-
-  this._read = 0
-  this._ack = Math.floor(req.batch / 2)
-  this._req = req
-  this._parent._iterators[this._id] = req
-  if (this._parent._encode) this._parent._encode.iterators(req)
-}
-
-Iterator.prototype.next = function (cb) {
-  var req = this._req
-  req.cb = null
-
-  if (req.pending.length) {
-    this._read++
-    if (this._read >= this._ack) {
-      this._read = 0
-      this._req.options = null
-      if (this._parent._encode) this._parent._encode.iterators(this._req)
-    }
-
-    var next = req.pending.shift()
-    if (next.error) return cb(decodeError(next.error))
-    if (!next.key && !next.value) return cb()
-    this._options.gt = next.key
-    if (this._options.limit > 0) this._options.limit--
-    return cb(undefined, decodeValue(next.key, this._keyEncoding), decodeValue(next.value, this._valueEncoding))
-  }
-
-  req.cb = cb
-}
-
-Iterator.prototype.end = function (cb) {
-  this._req.batch = 0
-  if (this._parent._encode) this._parent._encode.iterators(this._req)
-  gc(this._parent._iterators, this._id)
-  this._parent._flushMaybe()
-  if (cb) process.nextTick(cb)
 }
 
 Multilevel.prototype._iterator = function (opts) {
   return new Iterator(this, opts)
 }
 
-module.exports = Multilevel
+function noop () {}
+
+function Iterator (parent, opts) {
+  this._parent = parent
+  this._keyEncoding = opts.keyEncoding
+  this._valueEncoding = opts.valueEncoding
+  this._options = opts
+
+  var req = {
+    tag: 4,
+    id: 0,
+    batch: 32,
+    pending: [],
+    iterator: this,
+    options: opts,
+    callback: null
+  }
+
+  req.id = parent._iterators.add(req)
+
+  this._read = 0
+  this._ack = Math.floor(req.batch / 2)
+  this._req = req
+  this._parent._write(req)
+}
+
+Iterator.prototype.next = function (cb) {
+  this._req.callback = null
+
+  if (this._req.pending.length) {
+    this._read++
+    if (this._read >= this._ack) {
+      this._read = 0
+      this._req.options = null
+      this._parent._write(this._req)
+    }
+
+    var next = this._req.pending.shift()
+    if (next.error) return cb(decodeError(next.error))
+
+    if (!next.key && !next.value) return cb()
+
+    this._options.gt = next.key
+    if (this._options.limit > 0) this._options.limit--
+
+    var key = decodeValue(next.key, this._keyEncoding)
+    var val = decodeValue(next.value, this._valueEncoding)
+    return cb(undefined, key, val)
+  }
+
+  this._req.callback = cb
+}
+
+Iterator.prototype.end = function (cb) {
+  this._req.batch = 0
+  this._parent._write(this._req)
+  this._parent._iterators.remove(this._req.id)
+  this._parent._flushMaybe()
+  if (cb) process.nextTick(cb)
+}
+
+function decodeError (err) {
+  return err ? new Error(err) : null
+}
+
+function decodeValue (val, enc) {
+  if (!val) return undefined
+  return (enc === 'utf8' || enc === 'utf-8') ? val.toString() : val
+}
+
+function ref (r) {
+  if (r && r.ref) r.ref()
+}
+
+function unref (r) {
+  if (r && r.unref) r.unref()
+}
