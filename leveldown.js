@@ -59,8 +59,13 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
     }
 
     switch (tag) {
-      case 0: return oncallback(res)
-      case 1: return oniteratordata(res)
+      case 0:
+        oncallback(res)
+        break
+
+      case 1:
+        oniteratordata(res)
+        break
     }
 
     self._flushMaybe()
