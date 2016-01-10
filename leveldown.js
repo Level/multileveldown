@@ -213,7 +213,7 @@ Multilevel.prototype._write = function (req) {
 }
 
 Multilevel.prototype._close = function (cb) {
-  if (this._db) return this._close(cb)
+  if (this._db) return this._db._close(cb)
 
   this._clearRequests(true)
   if (this._streaming) {
@@ -225,7 +225,7 @@ Multilevel.prototype._close = function (cb) {
 }
 
 Multilevel.prototype._iterator = function (opts) {
-  if (this._db) return this._iterator(opts)
+  if (this._db) return this._db._iterator(opts)
   return new Iterator(this, opts)
 }
 
