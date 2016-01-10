@@ -1,6 +1,6 @@
 {
   "name": "multileveldown",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "multilevel implemented using leveldowns with reconnect support",
   "main": "index.js",
   "dependencies": {
