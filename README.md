@@ -64,16 +64,18 @@ var db = multileveldown.client({
 
 var connect = function () {
   var sock = net.connect(9000)
+  var remote = db.connect()
 
   sock.on('error', function () {
     sock.destroy()
   })
 
   sock.on('close', function () {
+    remote.destroy()
     setTimeout(connect, 1000) // reconnect after 1s
   })
 
-  sock.pipe(db.connect()).pipe(sock)
+  sock.pipe(remote).pipe(sock)
 }
 
 connect()
