@@ -87,9 +87,15 @@ stream you are missing. Please note that this might not guarantee leveldb snapsh
 
 ## API
 
-#### `multileveldown.server(db)`
+#### `multileveldown.server(db, [options])`
 
-Returns a new duplex server stream that you should connect with a client
+Returns a new duplex server stream that you should connect with a client. Options include
+
+``` js
+{
+  readonly: true // make the database be accessible as read only
+}
+```
 
 #### `clientDb = multileveldown.client([options])`
 

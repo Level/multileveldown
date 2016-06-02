@@ -37,6 +37,26 @@ tape('put', function (t) {
   })
 })
 
+tape('readonly', function (t) {
+  var db = levelup('no-location', {db: memdown})
+
+  db.put('hello', 'verden')
+
+  var stream = multileveldown.server(db, {readonly: true})
+  var client = multileveldown.client()
+
+  stream.pipe(client.createRpcStream()).pipe(stream)
+
+  client.put('hello', 'world', function (err) {
+    t.ok(err, 'put failed')
+    client.get('hello', function (err, value) {
+      t.error(err, 'no err')
+      t.same(value, 'verden', 'old value')
+      t.end()
+    })
+  })
+})
+
 tape('del', function (t) {
   var db = levelup('no-location', {db: memdown})
   var stream = multileveldown.server(db)

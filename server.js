@@ -12,6 +12,7 @@ var DECODERS = [
 ]
 
 module.exports = function (db, opts) {
+  var readonly = !!(opts && opts.readonly)
   var decode = lpstream.decode()
   var encode = lpstream.encode()
   var stream = duplexify(decode, encode)
@@ -44,12 +45,22 @@ module.exports = function (db, opts) {
         return
       }
 
-      switch (tag) {
-        case 0: return onget(req)
-        case 1: return onput(req)
-        case 2: return ondel(req)
-        case 3: return onbatch(req)
-        case 4: return oniterator(req)
+      if (readonly) {
+        switch (tag) {
+          case 0: return onget(req)
+          case 1: return onreadonly(req)
+          case 2: return onreadonly(req)
+          case 3: return onreadonly(req)
+          case 4: return oniterator(req)
+        }
+      } else {
+        switch (tag) {
+          case 0: return onget(req)
+          case 1: return onput(req)
+          case 2: return ondel(req)
+          case 3: return onbatch(req)
+          case 4: return oniterator(req)
+        }
       }
     })
 
@@ -77,6 +88,10 @@ module.exports = function (db, opts) {
       down.del(req.key, function (err) {
         callback(req.id, err)
       })
+    }
+
+    function onreadonly (req) {
+      callback(req.id, new Error('Database is readonly'))
     }
 
     function onbatch (req) {
