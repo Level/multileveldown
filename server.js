@@ -12,10 +12,16 @@ var DECODERS = [
 ]
 
 module.exports = function (db, opts) {
-  var readonly = !!(opts && opts.readonly)
+  if (!opts) opts = {}
+
+  var readonly = !!(opts.readonly)
   var decode = lpstream.decode()
   var encode = lpstream.encode()
   var stream = duplexify(decode, encode)
+
+  var preput = opts.preput || function (key, val, cb) { cb(null) }
+  var predel = opts.predel || function (key, cb) { cb(null) }
+  var prebatch = opts.prebatch || function (ops, cb) { cb(null) }
 
   if (db.isOpen()) ready()
   else db.open(ready)
@@ -73,8 +79,11 @@ module.exports = function (db, opts) {
     }
 
     function onput (req) {
-      down.put(req.key, req.value, function (err) {
-        callback(req.id, err, null)
+      preput(req.key, req.value, function (err) {
+        if (err) return callback(err)
+        down.put(req.key, req.value, function (err) {
+          callback(req.id, err, null)
+        })
       })
     }
 
@@ -85,8 +94,11 @@ module.exports = function (db, opts) {
     }
 
     function ondel (req) {
-      down.del(req.key, function (err) {
-        callback(req.id, err)
+      predel(req.key, function (err) {
+        if (err) return callback(err)
+        down.del(req.key, function (err) {
+          callback(req.id, err)
+        })
       })
     }
 
@@ -95,8 +107,11 @@ module.exports = function (db, opts) {
     }
 
     function onbatch (req) {
-      down.batch(req.ops, function (err) {
-        callback(req.id, err)
+      prebatch(req.ops, function (err) {
+        if (err) return callback(err)
+        down.batch(req.ops, function (err) {
+          callback(req.id, err)
+        })
       })
     }
 
@@ -121,6 +136,13 @@ function Iterator (down, req, encode) {
   var self = this
 
   this.batch = req.batch || 0
+
+  if (req.options) {
+    if (req.options.gt === null) req.options.gt = undefined
+    if (req.options.gte === null) req.options.gte = undefined
+    if (req.options.lt === null) req.options.lt = undefined
+    if (req.options.lte === null) req.options.lte = undefined
+  }
 
   this._iterator = down.iterator(req.options)
   this._encode = encode

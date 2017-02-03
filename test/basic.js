@@ -5,7 +5,7 @@ var levelup = require('levelup')
 var multileveldown = require('../')
 
 tape('get', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = levelup('no-location', {db: mem})
   var stream = multileveldown.server(db)
   var client = multileveldown.client()
 
@@ -21,7 +21,7 @@ tape('get', function (t) {
 })
 
 tape('put', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = levelup('no-location', {db: mem})
   var stream = multileveldown.server(db)
   var client = multileveldown.client()
 
@@ -38,7 +38,7 @@ tape('put', function (t) {
 })
 
 tape('readonly', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = levelup('no-location', {db: mem})
 
   db.put('hello', 'verden')
 
@@ -58,7 +58,7 @@ tape('readonly', function (t) {
 })
 
 tape('del', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = levelup('no-location', {db: mem})
   var stream = multileveldown.server(db)
   var client = multileveldown.client()
 
@@ -78,7 +78,7 @@ tape('del', function (t) {
 })
 
 tape('batch', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = levelup('no-location', {db: mem})
   var stream = multileveldown.server(db)
   var client = multileveldown.client()
 
@@ -99,7 +99,7 @@ tape('batch', function (t) {
 })
 
 tape('read stream', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = levelup('no-location', {db: mem})
   var stream = multileveldown.server(db)
   var client = multileveldown.client()
 
@@ -118,7 +118,7 @@ tape('read stream', function (t) {
 })
 
 tape('read stream (gt)', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = levelup('no-location', {db: mem})
   var stream = multileveldown.server(db)
   var client = multileveldown.client()
 
@@ -134,3 +134,7 @@ tape('read stream (gt)', function (t) {
     }))
   })
 })
+
+function mem () {
+  return memdown()
+}

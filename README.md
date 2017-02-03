@@ -93,7 +93,10 @@ Returns a new duplex server stream that you should connect with a client. Option
 
 ``` js
 {
-  readonly: true // make the database be accessible as read only
+  readonly: true, // make the database be accessible as read only
+  preput: function (key, val, cb) {}, // called before puts
+  predel: function (key, cb) {}, // called before dels
+  prebatch: function (batch, cb) {} // called before batches
 }
 ```
 
