@@ -6,6 +6,7 @@
   "dependencies": {
     "abstract-leveldown": "^2.4.1",
     "brfs": "^1.4.2",
+    "concat-stream": "1.6.0",
     "duplexify": "^3.4.2",
     "end-of-stream": "^1.1.0",
     "length-prefixed-stream": "^1.4.0",
