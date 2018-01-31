@@ -5,27 +5,23 @@
   "main": "index.js",
   "dependencies": {
     "abstract-leveldown": "^2.4.1",
-    "brfs": "^1.4.2",
     "duplexify": "^3.4.2",
     "end-of-stream": "^1.1.0",
     "length-prefixed-stream": "^1.4.0",
     "levelup": "^1.3.1",
     "numeric-id-map": "^1.1.0",
-    "protocol-buffers": "^3.1.4"
+    "protocol-buffers-encodings": "^1.1.0"
   },
   "devDependencies": {
     "concat-stream": "^1.5.1",
     "memdown": "^1.1.0",
+    "protocol-buffers": "^4.0.2",
     "standard": "^5.4.1",
     "tape": "^4.4.0"
   },
   "scripts": {
-    "test": "standard && tape test/*.js"
-  },
-  "browserify": {
-    "transform": [
-      "brfs"
-    ]
+    "test": "standard && tape test/*.js",
+    "protobuf": "protocol-buffers schema.proto -o messages.js"
   },
   "repository": {
     "type": "git",
