@@ -2,6 +2,7 @@ var lpstream = require('length-prefixed-stream')
 var eos = require('end-of-stream')
 var duplexify = require('duplexify')
 var messages = require('./messages')
+var bufferAlloc = require('buffer-alloc')
 
 var DECODERS = [
   messages.Get,
@@ -72,7 +73,7 @@ module.exports = function (db, opts) {
 
     function callback (id, err, value) {
       var msg = {id: id, error: err && err.message, value: value}
-      var buf = new Buffer(messages.Callback.encodingLength(msg) + 1)
+      var buf = bufferAlloc(messages.Callback.encodingLength(msg) + 1)
       buf[0] = 0
       messages.Callback.encode(msg, buf, 1)
       encode.write(buf)
@@ -163,7 +164,7 @@ function Iterator (down, req, encode) {
     self._data.key = key
     self._data.value = value
     self.batch--
-    var buf = new Buffer(messages.IteratorData.encodingLength(self._data) + 1)
+    var buf = bufferAlloc(messages.IteratorData.encodingLength(self._data) + 1)
     buf[0] = 1
     messages.IteratorData.encode(self._data, buf, 1)
     encode.write(buf)
