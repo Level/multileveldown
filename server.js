@@ -1,7 +1,10 @@
 var lpstream = require('length-prefixed-stream')
 var eos = require('end-of-stream')
 var duplexify = require('duplexify')
+var reachdown = require('reachdown')
 var messages = require('./messages')
+var rangeOptions = 'gt gte lt lte'.split(' ')
+var matchdown = require('./matchdown')
 
 var DECODERS = [
   messages.Get,
@@ -29,7 +32,7 @@ module.exports = function (db, opts) {
   return stream
 
   function ready () {
-    var down = db.db
+    var down = reachdown(db, matchdown, false)
     var iterators = []
 
     eos(stream, function () {
@@ -71,8 +74,8 @@ module.exports = function (db, opts) {
     })
 
     function callback (id, err, value) {
-      var msg = {id: id, error: err && err.message, value: value}
-      var buf = new Buffer(messages.Callback.encodingLength(msg) + 1)
+      var msg = { id: id, error: err && err.message, value: value }
+      var buf = Buffer.allocUnsafe(messages.Callback.encodingLength(msg) + 1)
       buf[0] = 0
       messages.Callback.encode(msg, buf, 1)
       encode.write(buf)
@@ -109,6 +112,7 @@ module.exports = function (db, opts) {
     function onbatch (req) {
       prebatch(req.ops, function (err) {
         if (err) return callback(err)
+
         down.batch(req.ops, function (err) {
           callback(req.id, err)
         })
@@ -136,15 +140,7 @@ function Iterator (down, req, encode) {
   var self = this
 
   this.batch = req.batch || 0
-
-  if (req.options) {
-    if (req.options.gt === null) req.options.gt = undefined
-    if (req.options.gte === null) req.options.gte = undefined
-    if (req.options.lt === null) req.options.lt = undefined
-    if (req.options.lte === null) req.options.lte = undefined
-  }
-
-  this._iterator = down.iterator(req.options)
+  this._iterator = down.iterator(cleanRangeOptions(req.options))
   this._encode = encode
   this._send = send
   this._nexting = false
@@ -163,7 +159,7 @@ function Iterator (down, req, encode) {
     self._data.key = key
     self._data.value = value
     self.batch--
-    var buf = new Buffer(messages.IteratorData.encodingLength(self._data) + 1)
+    var buf = Buffer.allocUnsafe(messages.IteratorData.encodingLength(self._data) + 1)
     buf[0] = 1
     messages.IteratorData.encode(self._data, buf, 1)
     encode.write(buf)
@@ -185,3 +181,23 @@ Iterator.prototype.end = function () {
 }
 
 function noop () {}
+
+function cleanRangeOptions (options) {
+  if (!options) return
+
+  var result = {}
+
+  for (var k in options) {
+    if (!hasOwnProperty.call(options, k)) continue
+
+    if (!isRangeOption(k) || options[k] != null) {
+      result[k] = options[k]
+    }
+  }
+
+  return result
+}
+
+function isRangeOption (k) {
+  return rangeOptions.indexOf(k) !== -1
+}
