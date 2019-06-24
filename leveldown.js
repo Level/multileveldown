@@ -206,7 +206,7 @@ Multilevel.prototype._batch = function (batch, opts, cb) {
 Multilevel.prototype._write = function (req) {
   if (this._requests.length + this._iterators.length === 1) ref(this._ref)
   var enc = ENCODERS[req.tag]
-  var buf = new Buffer(enc.encodingLength(req) + 1)
+  var buf = Buffer.alloc(enc.encodingLength(req) + 1)
   buf[0] = req.tag
   enc.encode(req, buf, 1)
   this._encode.write(buf)

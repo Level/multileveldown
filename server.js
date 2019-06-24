@@ -71,8 +71,8 @@ module.exports = function (db, opts) {
     })
 
     function callback (id, err, value) {
-      var msg = {id: id, error: err && err.message, value: value}
-      var buf = new Buffer(messages.Callback.encodingLength(msg) + 1)
+      var msg = { id: id, error: err && err.message, value: value }
+      var buf = Buffer.alloc(messages.Callback.encodingLength(msg) + 1)
       buf[0] = 0
       messages.Callback.encode(msg, buf, 1)
       encode.write(buf)
@@ -138,10 +138,18 @@ function Iterator (down, req, encode) {
   this.batch = req.batch || 0
 
   if (req.options) {
-    if (req.options.gt === null) req.options.gt = undefined
-    if (req.options.gte === null) req.options.gte = undefined
-    if (req.options.lt === null) req.options.lt = undefined
-    if (req.options.lte === null) req.options.lte = undefined
+    if (!req.options.gt) {
+      delete req.options.gt
+    }
+    if (!req.options.gte) {
+      delete req.options.gte
+    }
+    if (!req.options.lt) {
+      delete req.options.lt
+    }
+    if (!req.options.lte) {
+      delete req.options.lte
+    }
   }
 
   this._iterator = down.iterator(req.options)
@@ -163,7 +171,7 @@ function Iterator (down, req, encode) {
     self._data.key = key
     self._data.value = value
     self.batch--
-    var buf = new Buffer(messages.IteratorData.encodingLength(self._data) + 1)
+    var buf = Buffer.alloc(messages.IteratorData.encodingLength(self._data) + 1)
     buf[0] = 1
     messages.IteratorData.encode(self._data, buf, 1)
     encode.write(buf)

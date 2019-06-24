@@ -1,12 +1,11 @@
 var tape = require('tape')
-var memdown = require('memdown')
-var levelup = require('levelup')
+var level = require('level-mem')
 var multileveldown = require('../')
 
 tape('retry get', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = level()
   var stream = multileveldown.server(db)
-  var client = multileveldown.client({retry: true})
+  var client = multileveldown.client({ retry: true })
 
   db.put('hello', 'world', function () {
     client.get('hello', function (err, value) {
@@ -20,9 +19,9 @@ tape('retry get', function (t) {
 })
 
 tape('no retry get', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = level()
   var stream = multileveldown.server(db)
-  var client = multileveldown.client({retry: false})
+  var client = multileveldown.client({ retry: false })
 
   client.open(function () {
     db.put('hello', 'world', function () {
@@ -44,9 +43,9 @@ tape('no retry get', function (t) {
 })
 
 tape('retry get', function (t) {
-  var db = levelup('no-location', {db: memdown})
+  var db = level()
   var stream = multileveldown.server(db)
-  var client = multileveldown.client({retry: true})
+  var client = multileveldown.client({ retry: true })
 
   client.open(function () {
     db.put('hello', 'world', function () {
@@ -69,8 +68,8 @@ tape('retry get', function (t) {
 })
 
 tape('retry read stream', function (t) {
-  var db = levelup('no-location', {db: memdown})
-  var client = multileveldown.client({retry: true})
+  var db = level()
+  var client = multileveldown.client({ retry: true })
 
   client.open(function () {
     db.batch([{
@@ -124,8 +123,8 @@ tape('retry read stream', function (t) {
 })
 
 tape('retry read stream and limit', function (t) {
-  var db = levelup('no-location', {db: memdown})
-  var client = multileveldown.client({retry: true})
+  var db = level()
+  var client = multileveldown.client({ retry: true })
 
   client.open(function () {
     db.batch([{
@@ -141,7 +140,9 @@ tape('retry read stream and limit', function (t) {
       key: 'hola',
       value: 'mundo'
     }], function () {
-      var rs = client.createReadStream({limit: 2})
+      var rs = client.createReadStream({
+        limit: 2
+      })
       var expected = [{
         key: 'hej',
         value: 'verden'
