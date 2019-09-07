@@ -15,6 +15,7 @@
     "reachdown": "^1.0.0"
   },
   "devDependencies": {
+    "@adorsys/encrypt-down": "^2.0.1",
     "concat-stream": "^2.0.0",
     "level-compose": "^0.0.2",
     "memdown": "^5.0.0",
