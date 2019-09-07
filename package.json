@@ -20,6 +20,7 @@
     "memdown": "^5.0.0",
     "protocol-buffers": "^4.0.2",
     "standard": "^14.1.0",
+    "subleveldown": "^4.1.1",
     "tape": "^4.11.0"
   },
   "scripts": {
