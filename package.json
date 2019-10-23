@@ -25,12 +25,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mafintosh/multileveldown.git"
+    "url": "https://github.com/Level/multileveldown.git"
   },
   "author": "Mathias Buus (@mafintosh)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mafintosh/multileveldown/issues"
+    "url": "https://github.com/Level/multileveldown/issues"
   },
-  "homepage": "https://github.com/mafintosh/multileveldown"
+  "homepage": "https://github.com/Level/multileveldown"
 }
