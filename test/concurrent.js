@@ -3,16 +3,18 @@ var memdown = require('memdown')
 var levelup = require('levelup')
 var concat = require('concat-stream')
 var multileveldown = require('../')
+var encode = require('encoding-down')
+var factory = require('level-compose')(memdown, encode, levelup)
 
 tape('two concurrent iterators', function (t) {
-  var db = levelup('', {db: memdown})
+  var db = factory()
   var server = multileveldown.server(db)
   var client = multileveldown.client()
 
   server.pipe(client.connect()).pipe(server)
 
   var batch = []
-  for (var i = 0; i < 100; i++) batch.push({type: 'put', key: 'key-' + i, value: 'value-' + i})
+  for (var i = 0; i < 100; i++) batch.push({ type: 'put', key: 'key-' + i, value: 'value-' + i })
 
   client.batch(batch, function (err) {
     t.error(err)

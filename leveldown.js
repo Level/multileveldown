@@ -4,7 +4,9 @@ var util = require('util')
 var eos = require('end-of-stream')
 var ids = require('numeric-id-map')
 var lpstream = require('length-prefixed-stream')
+var reachdown = require('reachdown')
 var messages = require('./messages')
+var matchdown = require('./matchdown')
 
 var ENCODERS = [
   messages.Get,
@@ -21,9 +23,9 @@ var DECODERS = [
 
 module.exports = Multilevel
 
-function Multilevel (path, opts) {
-  if (!(this instanceof Multilevel)) return new Multilevel(path, opts)
-  abstract.AbstractLevelDOWN.call(this, path)
+function Multilevel (opts) {
+  if (!(this instanceof Multilevel)) return new Multilevel(opts)
+  abstract.AbstractLevelDOWN.call(this)
 
   if (!opts) opts = {}
   this._iterators = ids()
@@ -37,6 +39,8 @@ function Multilevel (path, opts) {
 }
 
 util.inherits(Multilevel, abstract.AbstractLevelDOWN)
+
+Multilevel.prototype.type = 'multileveldown'
 
 Multilevel.prototype.createRpcStream = function (opts, proxy) {
   if (this._streaming) throw new Error('Only one rpc stream can be active')
@@ -112,12 +116,12 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
 
   function oncallback (res) {
     var req = self._requests.remove(res.id)
-    if (req) req.callback(decodeError(res.error), decodeValue(res.value, req.valueEncoding))
+    if (req) req.callback(decodeError(res.error), decodeValue(res.value, req.valueAsBuffer))
   }
 }
 
 Multilevel.prototype.forward = function (down) {
-  this._db = down
+  this._db = reachdown(down, matchdown, false)
 }
 
 Multilevel.prototype.isFlushed = function () {
@@ -145,6 +149,14 @@ Multilevel.prototype._clearRequests = function (closing) {
   }
 }
 
+Multilevel.prototype._serializeKey = function (key) {
+  return Buffer.isBuffer(key) ? key : Buffer.from(String(key))
+}
+
+Multilevel.prototype._serializeValue = function (value) {
+  return Buffer.isBuffer(value) ? value : Buffer.from(String(value))
+}
+
 Multilevel.prototype._get = function (key, opts, cb) {
   if (this._db) return this._db._get(key, opts, cb)
 
@@ -152,7 +164,7 @@ Multilevel.prototype._get = function (key, opts, cb) {
     tag: 0,
     id: 0,
     key: key,
-    valueEncoding: opts.valueEncoding || (opts.asBuffer === false ? 'utf-8' : 'binary'),
+    valueAsBuffer: opts.asBuffer,
     callback: cb || noop
   }
 
@@ -206,7 +218,7 @@ Multilevel.prototype._batch = function (batch, opts, cb) {
 Multilevel.prototype._write = function (req) {
   if (this._requests.length + this._iterators.length === 1) ref(this._ref)
   var enc = ENCODERS[req.tag]
-  var buf = new Buffer(enc.encodingLength(req) + 1)
+  var buf = Buffer.allocUnsafe(enc.encodingLength(req) + 1)
   buf[0] = req.tag
   enc.encode(req, buf, 1)
   this._encode.write(buf)
@@ -231,10 +243,11 @@ Multilevel.prototype._iterator = function (opts) {
 
 function noop () {}
 
+// TODO: extend AbstractIterator, passing db to ctor
 function Iterator (parent, opts) {
   this._parent = parent
-  this._keyEncoding = opts.keyEncoding
-  this._valueEncoding = opts.valueEncoding
+  this._keyAsBuffer = opts.keyAsBuffer
+  this._valueAsBuffer = opts.valueAsBuffer
   this._options = opts
 
   var req = {
@@ -274,8 +287,8 @@ Iterator.prototype.next = function (cb) {
     this._options.gt = next.key
     if (this._options.limit > 0) this._options.limit--
 
-    var key = decodeValue(next.key, this._keyEncoding)
-    var val = decodeValue(next.value, this._valueEncoding)
+    var key = decodeValue(next.key, this._keyAsBuffer)
+    var val = decodeValue(next.value, this._valueAsBuffer)
     return cb(undefined, key, val)
   }
 
@@ -294,9 +307,9 @@ function decodeError (err) {
   return err ? new Error(err) : null
 }
 
-function decodeValue (val, enc) {
+function decodeValue (val, asBuffer) {
   if (!val) return undefined
-  return (enc === 'utf8' || enc === 'utf-8') ? val.toString() : val
+  return asBuffer ? val : val.toString()
 }
 
 function ref (r) {
