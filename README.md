@@ -18,7 +18,7 @@ Similar to [`multilevel`](https://github.com/juliangruber/multilevel) you can us
 
 First create a server
 
-``` js
+```js
 var multileveldown = require('multileveldown')
 var level = require('level')
 var net = require('net')
@@ -38,7 +38,7 @@ server.listen(9000)
 
 Then create some clients
 
-``` js
+```js
 var multileveldown = require('multileveldown')
 var net = require('net')
 
@@ -56,7 +56,7 @@ db.put('hello', 'world', function () {
 
 To setup reconnect in your client simply set `retry: true` and reconnect to your server when the connection fails
 
-``` js
+```js
 var multileveldown = require('multileveldown')
 var net = require('net')
 
@@ -93,7 +93,7 @@ stream you are missing. Please note that this might not guarantee leveldb snapsh
 
 Returns a new duplex server stream that you should connect with a client. Options include
 
-``` js
+```js
 {
   readonly: true, // make the database be accessible as read only
   preput: function (key, val, cb) {}, // called before puts
@@ -145,6 +145,6 @@ To sustain [`Level`](https://github.com/Level) and its activities, become a back
 
 ## License
 
-MIT
+[MIT](LICENSE.md) © 2015-present Mathias Buus and [Contributors](CONTRIBUTORS.md).
 
 [level-badge]: https://leveljs.org/img/badge.svg

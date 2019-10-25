@@ -6,8 +6,9 @@
   "license": "MIT",
   "main": "index.js",
   "scripts": {
-    "test": "standard && (nyc -s tape test/*.js | faucet) && nyc report",
+    "test": "standard && hallmark && (nyc -s tape test/*.js | faucet) && nyc report",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "hallmark": "hallmark --fix",
     "protobuf": "protocol-buffers schema.proto -o messages.js",
     "dependency-check": "dependency-check --no-dev .",
     "prepublishOnly": "npm run dependency-check"
@@ -29,6 +30,8 @@
     "coveralls": "^3.0.7",
     "dependency-check": "^4.1.0",
     "faucet": "^0.0.1",
+    "hallmark": "^2.0.0",
+    "level-community": "^3.0.0",
     "level-compose": "^0.0.2",
     "memdown": "^5.0.0",
     "nyc": "^14.1.1",
@@ -36,6 +39,9 @@
     "standard": "^14.1.0",
     "subleveldown": "^4.1.1",
     "tape": "^4.11.0"
+  },
+  "hallmark": {
+    "community": "level-community"
   },
   "repository": {
     "type": "git",
