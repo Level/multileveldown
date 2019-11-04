@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.0.0] - 2019-11-04
+
+### Changed
+
+- Move repository from [**@mafintosh**](https://github.com/mafintosh) to [**@Level**](https://github.com/Level) ([`45b257c`](https://github.com/Level/multileveldown/commit/45b257c)) ([**@mafintosh**](https://github.com/mafintosh), [**@vweevers**](https://github.com/vweevers))
+- **Breaking:** upgrade to latest Level modules ([#15](https://github.com/Level/multileveldown/issues/15)) ([**@vweevers**](https://github.com/vweevers)):
+  - Mainly to support node 10, 12 and future. Also includes latest `memdown` (a devDependency) which now internally stores keys & values as Buffers, making it more reliable as a `leveldown` replacement in tests
+  - Support an input `db` that isn't `level` (may or may not have `levelup`, `encoding-down`, `deferred-leveldown` layers, and may have additional layers)
+  - Expose all methods that `level-party` needs on the `multileveldown` client, so that `level-party` doesn't have to reach down (e.g. `db.db`)
+  - Support `subleveldown` on `level-party`
+  - Support `subleveldown` on `multileveldown` client (i.e. for client-side sublevels)
+  - Support `multileveldown` server on `subleveldown` (i.e. to expose only a sublevel to client)
+
+### Added
+
+- Add `CHANGELOG.md`, `CONTRIBUTORS.md`, `hallmark` ([`7ded891`](https://github.com/Level/multileveldown/commit/7ded891)) ([**@vweevers**](https://github.com/vweevers))
+- Add test tools and `engines.node` ([`d50a9a5`](https://github.com/Level/multileveldown/commit/d50a9a5)) ([**@vweevers**](https://github.com/vweevers))
+
+### Removed
+
+- **Breaking:** drop node &lt; 8
+- **Breaking:** drop support of (at least) `deferred-leveldown` &lt; 2.0.0, `levelup` &lt; 2.0.0
+
 ## [2.3.1] - 2018-01-31
 
 ### Fixed
@@ -86,6 +109,8 @@
 ## 1.0.0 - 2015-04-24
 
 :seedling: Initial release.
+
+[3.0.0]: https://github.com/Level/multileveldown/compare/v2.3.1...v3.0.0
 
 [2.3.1]: https://github.com/Level/multileveldown/compare/v2.3.0...v2.3.1
 
