@@ -14,7 +14,7 @@
     "prepublishOnly": "npm run dependency-check"
   },
   "dependencies": {
-    "abstract-leveldown": "github:Level/abstract-leveldown#0a61ef4",
+    "abstract-leveldown": "^6.3.0",
     "duplexify": "^4.1.1",
     "encoding-down": "^6.3.0",
     "end-of-stream": "^1.1.0",
