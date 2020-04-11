@@ -19,7 +19,7 @@
     "encoding-down": "^6.3.0",
     "end-of-stream": "^1.1.0",
     "length-prefixed-stream": "^2.0.0",
-    "levelup": "github:Level/levelup#19e1967",
+    "levelup": "^4.4.0",
     "numeric-id-map": "^1.1.0",
     "protocol-buffers-encodings": "^1.1.0",
     "reachdown": "^1.0.0"
