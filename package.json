@@ -37,7 +37,7 @@
     "nyc": "^14.1.1",
     "protocol-buffers": "^4.0.2",
     "standard": "^14.1.0",
-    "subleveldown": "^4.1.1",
+    "subleveldown": "^5.0.1",
     "tape": "^4.11.0"
   },
   "hallmark": {
