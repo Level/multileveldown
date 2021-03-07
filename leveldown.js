@@ -229,7 +229,9 @@ Multilevel.prototype._close = function (cb) {
 
   this._clearRequests(true)
   if (this._streaming) {
-    this._streaming.once('close', cb)
+    // _streaming: could be a socket and emit 'close' with a
+    // hadError argument.
+    this._streaming.once('close', () => cb())
     this._streaming.destroy()
   } else {
     process.nextTick(cb)
