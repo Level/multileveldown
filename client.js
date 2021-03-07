@@ -18,8 +18,8 @@ module.exports = function (opts) {
     db.emit('flush')
   }
 
-  function connect (opts) {
-    return down.createRpcStream(opts, null)
+  function connect (opts, proxy) {
+    return down.createRpcStream(opts, proxy)
   }
 
   function isFlushed () {
