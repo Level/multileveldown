@@ -229,7 +229,7 @@ Multilevel.prototype._close = function (cb) {
 
   this._clearRequests(true)
   if (this._streaming) {
-    this._streaming.once('close', cb)
+    this._streaming.once('close', () => cb())
     this._streaming.destroy()
   } else {
     process.nextTick(cb)
