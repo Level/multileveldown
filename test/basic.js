@@ -1,17 +1,17 @@
-var tape = require('tape')
-var memdown = require('memdown')
-var concat = require('concat-stream')
-var levelup = require('levelup')
-var encode = require('encoding-down')
-var factory = require('level-compose')(memdown, encode, levelup)
-var multileveldown = require('../')
+const tape = require('tape')
+const memdown = require('memdown')
+const concat = require('concat-stream')
+const levelup = require('levelup')
+const encode = require('encoding-down')
+const factory = require('level-compose')(memdown, encode, levelup)
+const multileveldown = require('../')
 
 tape('get', function (t) {
   t.plan(7)
 
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -36,9 +36,9 @@ tape('get', function (t) {
 })
 
 tape('get with valueEncoding: json in constructor', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client({ valueEncoding: 'json' })
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client({ valueEncoding: 'json' })
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -54,9 +54,9 @@ tape('get with valueEncoding: json in constructor', function (t) {
 tape('get with valueEncoding: json in get options', function (t) {
   t.plan(5)
 
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -76,9 +76,9 @@ tape('get with valueEncoding: json in get options', function (t) {
 })
 
 tape('put', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -95,9 +95,9 @@ tape('put', function (t) {
 tape('put with valueEncoding: json in constructor', function (t) {
   t.plan(5)
 
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client({ valueEncoding: 'json' })
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client({ valueEncoding: 'json' })
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -119,9 +119,9 @@ tape('put with valueEncoding: json in constructor', function (t) {
 tape('put with valueEncoding: json in put options', function (t) {
   t.plan(5)
 
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -141,12 +141,12 @@ tape('put with valueEncoding: json in put options', function (t) {
 })
 
 tape('readonly', function (t) {
-  var db = factory()
+  const db = factory()
 
   db.put('hello', 'verden')
 
-  var stream = multileveldown.server(db, { readonly: true })
-  var client = multileveldown.client()
+  const stream = multileveldown.server(db, { readonly: true })
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -161,9 +161,9 @@ tape('readonly', function (t) {
 })
 
 tape('del', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -181,9 +181,9 @@ tape('del', function (t) {
 })
 
 tape('batch', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -202,15 +202,15 @@ tape('batch', function (t) {
 })
 
 tape('read stream', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
   client.batch([{ type: 'put', key: 'hello', value: 'world' }, { type: 'put', key: 'hej', value: 'verden' }], function (err) {
     t.error(err, 'no err')
-    var rs = client.createReadStream()
+    const rs = client.createReadStream()
     rs.pipe(concat(function (datas) {
       t.same(datas.length, 2)
       t.same(datas[0], { key: 'hej', value: 'verden' })
@@ -221,15 +221,15 @@ tape('read stream', function (t) {
 })
 
 tape('read stream (gt)', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
   client.batch([{ type: 'put', key: 'hello', value: 'world' }, { type: 'put', key: 'hej', value: 'verden' }], function (err) {
     t.error(err, 'no err')
-    var rs = client.createReadStream({ gt: 'hej' })
+    const rs = client.createReadStream({ gt: 'hej' })
     rs.pipe(concat(function (datas) {
       t.same(datas.length, 1)
       t.same(datas[0], { key: 'hello', value: 'world' })

@@ -1,12 +1,12 @@
-var levelup = require('levelup')
-var encode = require('encoding-down')
-var leveldown = require('./leveldown')
+const levelup = require('levelup')
+const encode = require('encoding-down')
+const leveldown = require('./leveldown')
 
 module.exports = function (opts) {
   if (!opts) opts = {}
 
-  var down = leveldown(Object.assign({}, opts, { onflush: onflush }))
-  var db = levelup(encode(down, opts), opts)
+  const down = leveldown(Object.assign({}, opts, { onflush: onflush }))
+  const db = levelup(encode(down, opts), opts)
 
   db.createRpcStream = db.connect = connect
   db.isFlushed = isFlushed

@@ -1,26 +1,26 @@
-var tape = require('tape')
-var memdown = require('memdown')
-var levelup = require('levelup')
-var concat = require('concat-stream')
-var multileveldown = require('../')
-var encode = require('encoding-down')
-var factory = require('level-compose')(memdown, encode, levelup)
+const tape = require('tape')
+const memdown = require('memdown')
+const levelup = require('levelup')
+const concat = require('concat-stream')
+const multileveldown = require('../')
+const encode = require('encoding-down')
+const factory = require('level-compose')(memdown, encode, levelup)
 
 tape('two concurrent iterators', function (t) {
-  var db = factory()
-  var server = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const server = multileveldown.server(db)
+  const client = multileveldown.client()
 
   server.pipe(client.connect()).pipe(server)
 
-  var batch = []
-  for (var i = 0; i < 100; i++) batch.push({ type: 'put', key: 'key-' + i, value: 'value-' + i })
+  const batch = []
+  for (let i = 0; i < 100; i++) batch.push({ type: 'put', key: 'key-' + i, value: 'value-' + i })
 
   client.batch(batch, function (err) {
     t.error(err)
 
-    var rs1 = client.createReadStream()
-    var rs2 = client.createReadStream()
+    const rs1 = client.createReadStream()
+    const rs2 = client.createReadStream()
 
     rs1.pipe(concat(function (list1) {
       t.same(list1.length, 100)

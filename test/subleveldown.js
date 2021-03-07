@@ -1,20 +1,20 @@
-var tape = require('tape')
-var memdown = require('memdown')
-var concat = require('concat-stream')
-var levelup = require('levelup')
-var encode = require('encoding-down')
-var factory = require('level-compose')(memdown, encode, levelup)
-var sub = require('subleveldown')
-var multileveldown = require('../')
+const tape = require('tape')
+const memdown = require('memdown')
+const concat = require('concat-stream')
+const levelup = require('levelup')
+const encode = require('encoding-down')
+const factory = require('level-compose')(memdown, encode, levelup)
+const sub = require('subleveldown')
+const multileveldown = require('../')
 
 tape('subleveldown on deferred multileveldown client', function (t) {
   t.plan(5)
 
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
-  var sub1 = sub(client, 'test', { valueEncoding: 'json' })
-  var sub2 = sub(client, 'test')
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
+  const sub1 = sub(client, 'test', { valueEncoding: 'json' })
+  const sub2 = sub(client, 'test')
 
   t.is(client.isOpen(), false)
   stream.pipe(client.createRpcStream()).pipe(stream)
@@ -39,17 +39,17 @@ tape('subleveldown on deferred multileveldown client', function (t) {
 tape('subleveldown on non-deferred multileveldown client', function (t) {
   t.plan(5)
 
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
   client.once('open', function () {
     t.is(client.isOpen(), true)
 
-    var sub1 = sub(client, 'test', { valueEncoding: 'json' })
-    var sub2 = sub(client, 'test')
+    const sub1 = sub(client, 'test', { valueEncoding: 'json' })
+    const sub2 = sub(client, 'test')
 
     sub1.put('hello', { test: 'world' }, function (err) {
       t.error(err, 'no err')
@@ -72,11 +72,11 @@ tape('subleveldown on non-deferred multileveldown client', function (t) {
 tape('multileveldown server on deferred subleveldown', function (t) {
   t.plan(4)
 
-  var db = factory()
-  var sub1 = sub(db, 'test1')
-  var sub2 = sub(db, 'test2')
-  var stream = multileveldown.server(sub1)
-  var client = multileveldown.client()
+  const db = factory()
+  const sub1 = sub(db, 'test1')
+  const sub2 = sub(db, 'test2')
+  const stream = multileveldown.server(sub1)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -103,13 +103,13 @@ tape('multileveldown server on deferred subleveldown', function (t) {
 tape('multileveldown server on non-deferred subleveldown', function (t) {
   t.plan(4)
 
-  var db = factory()
-  var sub1 = sub(db, 'test1')
-  var sub2 = sub(db, 'test2')
+  const db = factory()
+  const sub1 = sub(db, 'test1')
+  const sub2 = sub(db, 'test2')
 
   sub1.once('open', function () {
-    var stream = multileveldown.server(sub1)
-    var client = multileveldown.client()
+    const stream = multileveldown.server(sub1)
+    const client = multileveldown.client()
 
     stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -137,12 +137,12 @@ tape('multileveldown server on non-deferred subleveldown', function (t) {
 tape('multileveldown server on nested subleveldown', function (t) {
   t.plan(4)
 
-  var db = factory()
-  var sub1 = sub(db, 'test1')
-  var sub2 = sub(sub1, 'test2')
-  var sub3 = sub(db, 'test3')
-  var stream = multileveldown.server(sub2)
-  var client = multileveldown.client()
+  const db = factory()
+  const sub1 = sub(db, 'test1')
+  const sub2 = sub(sub1, 'test2')
+  const sub3 = sub(db, 'test3')
+  const stream = multileveldown.server(sub2)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 

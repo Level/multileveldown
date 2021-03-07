@@ -1,14 +1,14 @@
-var tape = require('tape')
-var memdown = require('memdown')
-var levelup = require('levelup')
-var multileveldown = require('../')
-var encode = require('encoding-down')
-var factory = require('level-compose')(memdown, encode, levelup)
+const tape = require('tape')
+const memdown = require('memdown')
+const levelup = require('levelup')
+const multileveldown = require('../')
+const encode = require('encoding-down')
+const factory = require('level-compose')(memdown, encode, levelup)
 
 tape('retry get', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client({ retry: true })
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client({ retry: true })
 
   db.put('hello', 'world', function () {
     client.get('hello', function (err, value) {
@@ -22,9 +22,9 @@ tape('retry get', function (t) {
 })
 
 tape('no retry get', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client({ retry: false })
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client({ retry: false })
 
   client.open(function () {
     db.put('hello', 'world', function () {
@@ -33,12 +33,12 @@ tape('no retry get', function (t) {
         t.end()
       })
 
-      var rpc = client.createRpcStream()
+      const rpc = client.createRpcStream()
       stream.pipe(rpc).pipe(stream)
       rpc.destroy()
 
       setTimeout(function () {
-        var rpc = client.createRpcStream()
+        const rpc = client.createRpcStream()
         stream.pipe(rpc).pipe(stream)
       }, 100)
     })
@@ -46,9 +46,9 @@ tape('no retry get', function (t) {
 })
 
 tape('retry get', function (t) {
-  var db = factory()
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client({ retry: true })
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client({ retry: true })
 
   client.open(function () {
     db.put('hello', 'world', function () {
@@ -58,12 +58,12 @@ tape('retry get', function (t) {
         t.end()
       })
 
-      var rpc = client.createRpcStream()
+      const rpc = client.createRpcStream()
       stream.pipe(rpc).pipe(stream)
       rpc.destroy()
 
       setTimeout(function () {
-        var rpc = client.createRpcStream()
+        const rpc = client.createRpcStream()
         stream.pipe(rpc).pipe(stream)
       }, 100)
     })
@@ -71,8 +71,8 @@ tape('retry get', function (t) {
 })
 
 tape('retry read stream', function (t) {
-  var db = factory()
-  var client = multileveldown.client({ retry: true })
+  const db = factory()
+  const client = multileveldown.client({ retry: true })
 
   client.open(function () {
     db.batch([{
@@ -88,8 +88,8 @@ tape('retry read stream', function (t) {
       key: 'hola',
       value: 'mundo'
     }], function () {
-      var rs = client.createReadStream()
-      var expected = [{
+      const rs = client.createReadStream()
+      const expected = [{
         key: 'hej',
         value: 'verden'
       }, {
@@ -109,10 +109,10 @@ tape('retry read stream', function (t) {
         t.end()
       })
 
-      var stream
-      var clientStream
+      let stream
+      let clientStream
 
-      var connect = function () {
+      const connect = function () {
         stream = multileveldown.server(db)
         clientStream = client.createRpcStream()
 
@@ -126,8 +126,8 @@ tape('retry read stream', function (t) {
 })
 
 tape('retry read stream and limit', function (t) {
-  var db = factory()
-  var client = multileveldown.client({ retry: true })
+  const db = factory()
+  const client = multileveldown.client({ retry: true })
 
   client.open(function () {
     db.batch([{
@@ -143,8 +143,8 @@ tape('retry read stream and limit', function (t) {
       key: 'hola',
       value: 'mundo'
     }], function () {
-      var rs = client.createReadStream({ limit: 2 })
-      var expected = [{
+      const rs = client.createReadStream({ limit: 2 })
+      const expected = [{
         key: 'hej',
         value: 'verden'
       }, {
@@ -161,10 +161,10 @@ tape('retry read stream and limit', function (t) {
         t.end()
       })
 
-      var stream
-      var clientStream
+      let stream
+      let clientStream
 
-      var connect = function () {
+      const connect = function () {
         stream = multileveldown.server(db)
         clientStream = client.createRpcStream()
 

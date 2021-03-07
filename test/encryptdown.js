@@ -1,13 +1,13 @@
-var tape = require('tape')
-var memdown = require('memdown')
-var concat = require('concat-stream')
-var levelup = require('levelup')
-var encode = require('encoding-down')
-var encrypt = require('@adorsys/encrypt-down')
-var factory = require('level-compose')(memdown, encrypt, encode, levelup)
-var multileveldown = require('../')
+const tape = require('tape')
+const memdown = require('memdown')
+const concat = require('concat-stream')
+const levelup = require('levelup')
+const encode = require('encoding-down')
+const encrypt = require('@adorsys/encrypt-down')
+const factory = require('level-compose')(memdown, encrypt, encode, levelup)
+const multileveldown = require('../')
 
-var jwk = {
+const jwk = {
   kty: 'oct',
   alg: 'A256GCM',
   use: 'enc',
@@ -21,9 +21,9 @@ var jwk = {
 tape('multileveldown server on encrypt-down', function (t) {
   t.plan(3)
 
-  var db = factory({ jwk })
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client()
+  const db = factory({ jwk })
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
@@ -46,9 +46,9 @@ tape('multileveldown server on encrypt-down', function (t) {
 tape('multileveldown server on encrypt-down with encoding', function (t) {
   t.plan(3)
 
-  var db = factory({ jwk, valueEncoding: 'json' })
-  var stream = multileveldown.server(db)
-  var client = multileveldown.client({ valueEncoding: 'json' })
+  const db = factory({ jwk, valueEncoding: 'json' })
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client({ valueEncoding: 'json' })
 
   stream.pipe(client.createRpcStream()).pipe(stream)
 
