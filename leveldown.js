@@ -1,14 +1,14 @@
-var duplexify = require('duplexify')
-var abstract = require('abstract-leveldown')
-var util = require('util')
-var eos = require('end-of-stream')
-var ids = require('numeric-id-map')
-var lpstream = require('length-prefixed-stream')
-var reachdown = require('reachdown')
-var messages = require('./messages')
-var matchdown = require('./matchdown')
+const duplexify = require('duplexify')
+const abstract = require('abstract-leveldown')
+const util = require('util')
+const eos = require('end-of-stream')
+const ids = require('numeric-id-map')
+const lpstream = require('length-prefixed-stream')
+const reachdown = require('reachdown')
+const messages = require('./messages')
+const matchdown = require('./matchdown')
 
-var ENCODERS = [
+const ENCODERS = [
   messages.Get,
   messages.Put,
   messages.Delete,
@@ -16,7 +16,7 @@ var ENCODERS = [
   messages.Iterator
 ]
 
-var DECODERS = [
+const DECODERS = [
   messages.Callback,
   messages.IteratorData
 ]
@@ -47,18 +47,19 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
   if (!opts) opts = {}
   this._ref = opts.ref || null
 
-  var self = this
-  var encode = this._encode
-  var decode = lpstream.decode()
+  const self = this
+  const encode = this._encode
+  const decode = lpstream.decode()
 
   decode.on('data', function (data) {
     if (!data.length) return
-    var tag = data[0]
+    const tag = data[0]
     if (tag >= DECODERS.length) return
 
-    var dec = DECODERS[tag]
+    const dec = DECODERS[tag]
+    let res
     try {
-      var res = dec.decode(data, 1)
+      res = dec.decode(data, 1)
     } catch (err) {
       return
     }
@@ -93,14 +94,14 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
       return
     }
 
-    for (var i = 0; i < self._requests.length; i++) {
-      var req = self._requests.get(i)
+    for (let i = 0; i < self._requests.length; i++) {
+      const req = self._requests.get(i)
       if (!req) continue
       self._write(req)
     }
 
-    for (var j = 0; j < self._iterators.length; j++) {
-      var ite = self._iterators.get(j)
+    for (let j = 0; j < self._iterators.length; j++) {
+      const ite = self._iterators.get(j)
       if (!ite) continue
       ite.options = ite.iterator._options
       self._write(ite)
@@ -108,14 +109,14 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
   }
 
   function oniteratordata (res) {
-    var req = self._iterators.get(res.id)
+    const req = self._iterators.get(res.id)
     if (!req) return
     req.pending.push(res)
     if (req.callback) req.iterator.next(req.callback)
   }
 
   function oncallback (res) {
-    var req = self._requests.remove(res.id)
+    const req = self._requests.remove(res.id)
     if (req) req.callback(decodeError(res.error), decodeValue(res.value, req.valueAsBuffer))
   }
 }
@@ -135,13 +136,13 @@ Multilevel.prototype._flushMaybe = function () {
 }
 
 Multilevel.prototype._clearRequests = function (closing) {
-  for (var i = 0; i < this._requests.length; i++) {
-    var req = this._requests.remove(i)
+  for (let i = 0; i < this._requests.length; i++) {
+    const req = this._requests.remove(i)
     if (req) req.callback(new Error('Connection to leader lost'))
   }
 
-  for (var j = 0; j < this._iterators.length; j++) {
-    var ite = this._iterators.remove(j)
+  for (let j = 0; j < this._iterators.length; j++) {
+    const ite = this._iterators.remove(j)
     if (ite) {
       if (ite.callback && !closing) ite.callback(new Error('Connection to leader lost'))
       ite.iterator.end()
@@ -160,7 +161,7 @@ Multilevel.prototype._serializeValue = function (value) {
 Multilevel.prototype._get = function (key, opts, cb) {
   if (this._db) return this._db._get(key, opts, cb)
 
-  var req = {
+  const req = {
     tag: 0,
     id: 0,
     key: key,
@@ -175,7 +176,7 @@ Multilevel.prototype._get = function (key, opts, cb) {
 Multilevel.prototype._put = function (key, value, opts, cb) {
   if (this._db) return this._db._put(key, value, opts, cb)
 
-  var req = {
+  const req = {
     tag: 1,
     id: 0,
     key: key,
@@ -190,7 +191,7 @@ Multilevel.prototype._put = function (key, value, opts, cb) {
 Multilevel.prototype._del = function (key, opts, cb) {
   if (this._db) return this._db._del(key, opts, cb)
 
-  var req = {
+  const req = {
     tag: 2,
     id: 0,
     key: key,
@@ -204,7 +205,7 @@ Multilevel.prototype._del = function (key, opts, cb) {
 Multilevel.prototype._batch = function (batch, opts, cb) {
   if (this._db) return this._db._batch(batch, opts, cb)
 
-  var req = {
+  const req = {
     tag: 3,
     id: 0,
     ops: batch,
@@ -217,8 +218,8 @@ Multilevel.prototype._batch = function (batch, opts, cb) {
 
 Multilevel.prototype._write = function (req) {
   if (this._requests.length + this._iterators.length === 1) ref(this._ref)
-  var enc = ENCODERS[req.tag]
-  var buf = Buffer.allocUnsafe(enc.encodingLength(req) + 1)
+  const enc = ENCODERS[req.tag]
+  const buf = Buffer.allocUnsafe(enc.encodingLength(req) + 1)
   buf[0] = req.tag
   enc.encode(req, buf, 1)
   this._encode.write(buf)
@@ -252,7 +253,7 @@ function Iterator (parent, opts) {
   this._valueAsBuffer = opts.valueAsBuffer
   this._options = opts
 
-  var req = {
+  const req = {
     tag: 4,
     id: 0,
     batch: 32,
@@ -281,7 +282,7 @@ Iterator.prototype.next = function (cb) {
       this._parent._write(this._req)
     }
 
-    var next = this._req.pending.shift()
+    const next = this._req.pending.shift()
     if (next.error) return cb(decodeError(next.error))
 
     if (!next.key && !next.value) return cb()
@@ -289,8 +290,8 @@ Iterator.prototype.next = function (cb) {
     this._options.gt = next.key
     if (this._options.limit > 0) this._options.limit--
 
-    var key = decodeValue(next.key, this._keyAsBuffer)
-    var val = decodeValue(next.value, this._valueAsBuffer)
+    const key = decodeValue(next.key, this._keyAsBuffer)
+    const val = decodeValue(next.value, this._valueAsBuffer)
     return cb(undefined, key, val)
   }
 

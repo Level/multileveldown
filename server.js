@@ -1,12 +1,12 @@
-var lpstream = require('length-prefixed-stream')
-var eos = require('end-of-stream')
-var duplexify = require('duplexify')
-var reachdown = require('reachdown')
-var messages = require('./messages')
-var rangeOptions = 'gt gte lt lte'.split(' ')
-var matchdown = require('./matchdown')
+const lpstream = require('length-prefixed-stream')
+const eos = require('end-of-stream')
+const duplexify = require('duplexify')
+const reachdown = require('reachdown')
+const messages = require('./messages')
+const rangeOptions = 'gt gte lt lte'.split(' ')
+const matchdown = require('./matchdown')
 
-var DECODERS = [
+const DECODERS = [
   messages.Get,
   messages.Put,
   messages.Delete,
@@ -17,14 +17,14 @@ var DECODERS = [
 module.exports = function (db, opts) {
   if (!opts) opts = {}
 
-  var readonly = !!(opts.readonly)
-  var decode = lpstream.decode()
-  var encode = lpstream.encode()
-  var stream = duplexify(decode, encode)
+  const readonly = !!(opts.readonly)
+  const decode = lpstream.decode()
+  const encode = lpstream.encode()
+  const stream = duplexify(decode, encode)
 
-  var preput = opts.preput || function (key, val, cb) { cb(null) }
-  var predel = opts.predel || function (key, cb) { cb(null) }
-  var prebatch = opts.prebatch || function (ops, cb) { cb(null) }
+  const preput = opts.preput || function (key, val, cb) { cb(null) }
+  const predel = opts.predel || function (key, cb) { cb(null) }
+  const prebatch = opts.prebatch || function (ops, cb) { cb(null) }
 
   if (db.isOpen()) ready()
   else db.open(ready)
@@ -32,24 +32,25 @@ module.exports = function (db, opts) {
   return stream
 
   function ready () {
-    var down = reachdown(db, matchdown, false)
-    var iterators = []
+    const down = reachdown(db, matchdown, false)
+    const iterators = []
 
     eos(stream, function () {
       while (iterators.length) {
-        var next = iterators.shift()
+        const next = iterators.shift()
         if (next) next.end()
       }
     })
 
     decode.on('data', function (data) {
       if (!data.length) return
-      var tag = data[0]
+      const tag = data[0]
       if (tag >= DECODERS.length) return
 
-      var dec = DECODERS[tag]
+      const dec = DECODERS[tag]
+      let req
       try {
-        var req = dec.decode(data, 1)
+        req = dec.decode(data, 1)
       } catch (err) {
         return
       }
@@ -74,8 +75,8 @@ module.exports = function (db, opts) {
     })
 
     function callback (id, err, value) {
-      var msg = { id: id, error: err && err.message, value: value }
-      var buf = Buffer.allocUnsafe(messages.Callback.encodingLength(msg) + 1)
+      const msg = { id: id, error: err && err.message, value: value }
+      const buf = Buffer.allocUnsafe(messages.Callback.encodingLength(msg) + 1)
       buf[0] = 0
       messages.Callback.encode(msg, buf, 1)
       encode.write(buf)
@@ -122,7 +123,7 @@ module.exports = function (db, opts) {
     function oniterator (req) {
       while (iterators.length < req.id) iterators.push(null)
 
-      var prev = iterators[req.id]
+      let prev = iterators[req.id]
       if (!prev) prev = iterators[req.id] = new Iterator(down, req, encode)
 
       if (!req.batch) {
@@ -137,7 +138,7 @@ module.exports = function (db, opts) {
 }
 
 function Iterator (down, req, encode) {
-  var self = this
+  const self = this
 
   this.batch = req.batch || 0
   this._iterator = down.iterator(cleanRangeOptions(req.options))
@@ -159,7 +160,7 @@ function Iterator (down, req, encode) {
     self._data.key = key
     self._data.value = value
     self.batch--
-    var buf = Buffer.allocUnsafe(messages.IteratorData.encodingLength(self._data) + 1)
+    const buf = Buffer.allocUnsafe(messages.IteratorData.encodingLength(self._data) + 1)
     buf[0] = 1
     messages.IteratorData.encode(self._data, buf, 1)
     encode.write(buf)
@@ -185,9 +186,9 @@ function noop () {}
 function cleanRangeOptions (options) {
   if (!options) return
 
-  var result = {}
+  const result = {}
 
-  for (var k in options) {
+  for (const k in options) {
     if (!hasOwnProperty.call(options, k)) continue
 
     if (!isRangeOption(k) || options[k] != null) {

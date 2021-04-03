@@ -1,17 +1,17 @@
-var test = require('tape')
-var memdown = require('memdown')
-var levelup = require('levelup')
-var encode = require('encoding-down')
-var factory = require('level-compose')(memdown, encode, levelup)
-var multileveldown = require('..')
-var suite = require('abstract-leveldown/test')
+const test = require('tape')
+const memdown = require('memdown')
+const levelup = require('levelup')
+const encode = require('encoding-down')
+const factory = require('level-compose')(memdown, encode, levelup)
+const multileveldown = require('..')
+const suite = require('abstract-leveldown/test')
 
 suite({
   test: test,
   factory: function () {
-    var db = factory()
-    var stream = multileveldown.server(db)
-    var client = multileveldown.client()
+    const db = factory()
+    const stream = multileveldown.server(db)
+    const client = multileveldown.client()
 
     stream.pipe(client.createRpcStream()).pipe(stream)
 
