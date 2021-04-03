@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.0.0] - 2021-04-03
+
+### Changed
+
+- **Breaking:** drop support of node 8 ([`5988dcc`](https://github.com/Level/multileveldown/commit/5988dcc)) (Vincent Weevers)
+- **Breaking:** modernize syntax ([#22](https://github.com/Level/multileveldown/issues/22)) ([`e7c67e2`](https://github.com/Level/multileveldown/commit/e7c67e2)) (Robert Nagy). Drops support of old browsers that don't support `const` and `let`.
+
+### Added
+
+- Allow passing proxy to `createRpcStream()` ([#24](https://github.com/Level/multileveldown/issues/24)) ([`77849a7`](https://github.com/Level/multileveldown/commit/77849a7)) ([Level/party#29](https://github.com/Level/party/issues/29)) (Robert Nagy)
+- Include `abstract-leveldown` tests ([#17](https://github.com/Level/multileveldown/issues/17)) ([`82511ed`](https://github.com/Level/multileveldown/commit/82511ed)) (Vincent Weevers).
+
 ## [3.0.0] - 2019-11-04
 
 ### Changed
@@ -109,6 +121,8 @@
 ## 1.0.0 - 2015-04-24
 
 :seedling: Initial release.
+
+[4.0.0]: https://github.com/Level/multileveldown/compare/v3.0.0...v4.0.0
 
 [3.0.0]: https://github.com/Level/multileveldown/compare/v2.3.1...v3.0.0
 

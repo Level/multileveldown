@@ -145,6 +145,6 @@ To sustain [`Level`](https://github.com/Level) and its activities, become a back
 
 ## License
 
-[MIT](LICENSE.md) © 2015-present Mathias Buus and [Contributors](CONTRIBUTORS.md).
+[MIT](LICENSE.md) © 2015-present Mathias Buus and contributors.
 
 [level-badge]: https://leveljs.org/img/badge.svg
