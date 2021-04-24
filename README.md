@@ -5,7 +5,7 @@
 [![level badge][level-badge]](https://github.com/Level/awesome)
 [![npm](https://img.shields.io/npm/v/multileveldown.svg?label=&logo=npm)](https://www.npmjs.com/package/multileveldown)
 [![Node version](https://img.shields.io/node/v/multileveldown.svg)](https://www.npmjs.com/package/multileveldown)
-[![Travis](https://img.shields.io/travis/com/Level/multileveldown.svg?logo=travis&label=)](https://travis-ci.com/Level/multileveldown)
+[![Test](https://github.com/Level/multileveldown/actions/workflows/test.yml/badge.svg)](https://github.com/Level/multileveldown/actions/workflows/test.yml)
 [![npm](https://img.shields.io/npm/dm/multileveldown.svg?label=dl)](https://www.npmjs.com/package/multileveldown)
 [![codecov](https://codecov.io/gh/Level/multileveldown/branch/master/graph/badge.svg)](https://codecov.io/gh/Level/multileveldown)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
