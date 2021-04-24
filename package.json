@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "test": "standard && hallmark && (nyc -s tape test/*.js | faucet) && nyc report",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "coverage": "nyc report -r lcovonly",
     "hallmark": "hallmark --fix",
     "protobuf": "protocol-buffers schema.proto -o messages.js",
     "dependency-check": "dependency-check --no-dev .",
@@ -27,7 +27,6 @@
   "devDependencies": {
     "@adorsys/encrypt-down": "^2.0.1",
     "concat-stream": "^2.0.0",
-    "coveralls": "^3.0.7",
     "dependency-check": "^4.1.0",
     "faucet": "^0.0.1",
     "hallmark": "^3.1.0",
