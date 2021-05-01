@@ -16,7 +16,7 @@
   "dependencies": {
     "abstract-leveldown": "^6.3.0",
     "duplexify": "^4.1.1",
-    "encoding-down": "^6.3.0",
+    "encoding-down": "^7.0.0",
     "end-of-stream": "^1.1.0",
     "length-prefixed-stream": "^2.0.0",
     "levelup": "^5.0.0",
