@@ -1,3 +1,5 @@
+'use strict'
+
 const duplexify = require('duplexify')
 const abstract = require('abstract-leveldown')
 const util = require('util')

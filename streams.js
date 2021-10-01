@@ -1,3 +1,5 @@
+'use strict'
+
 const pbs = require('pbs')
 const fs = require('fs')
 const path = require('path')

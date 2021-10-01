@@ -1,3 +1,5 @@
+'use strict'
+
 const lpstream = require('length-prefixed-stream')
 const eos = require('end-of-stream')
 const duplexify = require('duplexify')
