@@ -20,6 +20,7 @@ suite({
   },
   seek: false,
   clear: true,
+  getMany: false,
   snapshots: false,
   createIfMissing: false,
   errorIfExists: false,

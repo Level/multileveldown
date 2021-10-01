@@ -27,7 +27,17 @@ module.exports = Multilevel
 
 function Multilevel (opts) {
   if (!(this instanceof Multilevel)) return new Multilevel(opts)
-  AbstractLevelDOWN.call(this)
+
+  AbstractLevelDOWN.call(this, {
+    bufferKeys: true,
+    snapshots: !opts.retry,
+    permanence: true,
+    seek: false,
+    clear: true,
+    getMany: false,
+    createIfMissing: false,
+    errorIfExists: false
+  })
 
   if (!opts) opts = {}
   this._iterators = ids()
