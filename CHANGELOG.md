@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.0.0] - 2021-10-01
+
+_If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
+
+### Changed
+
+- **Breaking:** bump `abstract-leveldown` from 6.x to 7.x ([`e36c7dd`](https://github.com/Level/multileveldown/commit/e36c7dd)) (Vincent Weevers)
+- **Breaking:** bump `encoding-down` from 6.x to 7.x ([#28](https://github.com/Level/multileveldown/issues/28)) ([`0c1d5d1`](https://github.com/Level/multileveldown/commit/0c1d5d1)) (Vincent Weevers)
+- **Breaking:** bump `levelup` from 4.x to 5.x ([#31](https://github.com/Level/multileveldown/issues/31)) ([`7057901`](https://github.com/Level/multileveldown/commit/7057901)) (Vincent Weevers)
+- Bump `level-compose` from 0.0.2 to 1.x ([#27](https://github.com/Level/multileveldown/issues/27)) ([`6bc5a9f`](https://github.com/Level/multileveldown/commit/6bc5a9f)) (Vincent Weevers)
+- Enable strict mode ([`8e103fa`](https://github.com/Level/multileveldown/commit/8e103fa)) (Vincent Weevers)
+
+### Added
+
+- Add `db.getMany(keys)` ([`ff1ba48`](https://github.com/Level/multileveldown/commit/ff1ba48)) (Vincent Weevers)
+- Add manifest ([`b331481`](https://github.com/Level/multileveldown/commit/b331481)) (Vincent Weevers)
+
+### Fixed
+
+- Fix `for await...of db.iterator()` ([`fc3f3d5`](https://github.com/Level/multileveldown/commit/fc3f3d5)) (Vincent Weevers)
+- Optimize `db.clear()` ([`47e0137`](https://github.com/Level/multileveldown/commit/47e0137)) (Vincent Weevers).
+
 ## [4.0.0] - 2021-04-03
 
 ### Changed
@@ -118,9 +140,11 @@
 
 - Destroy encoder on close ([`23e6ab2`](https://github.com/Level/multileveldown/commit/23e6ab2)) ([**@mafintosh**](https://github.com/mafintosh))
 
-## 1.0.0 - 2015-04-24
+## [1.0.0] - 2015-04-24
 
 :seedling: Initial release.
+
+[5.0.0]: https://github.com/Level/multileveldown/releases/tag/v5.0.0
 
 [4.0.0]: https://github.com/Level/multileveldown/releases/tag/v4.0.0
 
@@ -151,3 +175,5 @@
 [1.0.2]: https://github.com/Level/multileveldown/releases/tag/v1.0.2
 
 [1.0.1]: https://github.com/Level/multileveldown/releases/tag/v1.0.1
+
+[1.0.0]: https://github.com/Level/multileveldown/releases/tag/v1.0.0
