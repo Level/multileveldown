@@ -237,3 +237,24 @@ tape('read stream (gt)', function (t) {
     }))
   })
 })
+
+tape('for await...of iterator', function (t) {
+  const db = factory()
+  const stream = multileveldown.server(db)
+  const client = multileveldown.client()
+
+  stream.pipe(client.createRpcStream()).pipe(stream)
+
+  client.batch([{ type: 'put', key: 'hello', value: 'world' }, { type: 'put', key: 'hej', value: 'verden' }], async function (err) {
+    t.error(err, 'no err')
+
+    const entries = []
+
+    for await (const [key, value] of client.iterator()) {
+      entries.push([key, value])
+    }
+
+    t.same(entries, [['hej', 'verden'], ['hello', 'world']])
+    t.end()
+  })
+})

@@ -203,6 +203,7 @@ Iterator.prototype.next = function () {
 }
 
 Iterator.prototype.end = function () {
+  if (this._ended) return
   this._ended = true
   this._iterator.end(noop)
 }

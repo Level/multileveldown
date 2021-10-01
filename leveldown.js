@@ -1,7 +1,7 @@
 'use strict'
 
 const duplexify = require('duplexify')
-const { AbstractLevelDOWN } = require('abstract-leveldown')
+const { AbstractLevelDOWN, AbstractIterator } = require('abstract-leveldown')
 const eos = require('end-of-stream')
 const ids = require('numeric-id-map')
 const lpstream = require('length-prefixed-stream')
@@ -287,7 +287,7 @@ Multilevel.prototype._close = function (cb) {
     this._streaming.once('close', () => cb())
     this._streaming.destroy()
   } else {
-    process.nextTick(cb)
+    this._nextTick(cb)
   }
 }
 
@@ -298,9 +298,9 @@ Multilevel.prototype._iterator = function (opts) {
 
 function noop () {}
 
-// TODO: extend AbstractIterator, passing db to ctor
-function Iterator (parent, opts) {
-  this._parent = parent
+function Iterator (db, opts) {
+  AbstractIterator.call(this, db)
+
   this._keyAsBuffer = opts.keyAsBuffer
   this._valueAsBuffer = opts.valueAsBuffer
   this._options = opts
@@ -315,15 +315,31 @@ function Iterator (parent, opts) {
     callback: null
   }
 
-  req.id = parent._iterators.add(req)
+  req.id = this.db._iterators.add(req)
 
   this._read = 0
   this._ack = Math.floor(req.batch / 2)
   this._req = req
-  this._parent._write(req)
+  this.db._write(req)
 }
 
-Iterator.prototype.next = function (cb) {
+Object.setPrototypeOf(Iterator.prototype, AbstractIterator.prototype)
+
+// TODO: implement _next() instead
+Iterator.prototype.next = function (callback) {
+  // In callback mode, we return `this`
+  let ret = this
+
+  if (callback === undefined) {
+    ret = new Promise(function (resolve, reject) {
+      callback = function (err, key, value) {
+        if (err) reject(err)
+        else if (key === undefined && value === undefined) resolve()
+        else resolve([key, value])
+      }
+    })
+  }
+
   this._req.callback = null
 
   if (this._req.pending.length) {
@@ -331,31 +347,41 @@ Iterator.prototype.next = function (cb) {
     if (this._read >= this._ack) {
       this._read = 0
       this._req.options = null
-      this._parent._write(this._req)
+      this.db._write(this._req)
     }
 
     const next = this._req.pending.shift()
-    if (next.error) return cb(decodeError(next.error))
 
-    if (!next.key && !next.value) return cb()
+    if (next.error) {
+      callback(decodeError(next.error))
+      return ret
+    }
+
+    if (!next.key && !next.value) {
+      callback()
+      return ret
+    }
 
     this._options.gt = next.key
     if (this._options.limit > 0) this._options.limit--
 
     const key = decodeValue(next.key, this._keyAsBuffer)
     const val = decodeValue(next.value, this._valueAsBuffer)
-    return cb(undefined, key, val)
+
+    callback(undefined, key, val)
+    return ret
   }
 
-  this._req.callback = cb
+  this._req.callback = callback
+  return ret
 }
 
-Iterator.prototype.end = function (cb) {
+Iterator.prototype._end = function (cb) {
   this._req.batch = 0
-  this._parent._write(this._req)
-  this._parent._iterators.remove(this._req.id)
-  this._parent._flushMaybe()
-  if (cb) process.nextTick(cb)
+  this.db._write(this._req)
+  this.db._iterators.remove(this._req.id)
+  this.db._flushMaybe()
+  this._nextTick(cb)
 }
 
 function decodeError (err) {
