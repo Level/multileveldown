@@ -3,29 +3,28 @@
 > [`multilevel`](https://github.com/juliangruber/multilevel) implemented using leveldowns with seamless retry support
 
 [![level badge][level-badge]](https://github.com/Level/awesome)
-[![npm](https://img.shields.io/npm/v/multileveldown.svg?label=&logo=npm)](https://www.npmjs.com/package/multileveldown)
+[![npm](https://img.shields.io/npm/v/multileveldown.svg)](https://www.npmjs.com/package/multileveldown)
 [![Node version](https://img.shields.io/node/v/multileveldown.svg)](https://www.npmjs.com/package/multileveldown)
-[![Test](https://github.com/Level/multileveldown/actions/workflows/test.yml/badge.svg)](https://github.com/Level/multileveldown/actions/workflows/test.yml)
-[![npm](https://img.shields.io/npm/dm/multileveldown.svg?label=dl)](https://www.npmjs.com/package/multileveldown)
-[![codecov](https://codecov.io/gh/Level/multileveldown/branch/master/graph/badge.svg)](https://codecov.io/gh/Level/multileveldown)
-[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-[![Backers on Open Collective](https://opencollective.com/level/backers/badge.svg?color=orange)](#backers)
-[![Sponsors on Open Collective](https://opencollective.com/level/sponsors/badge.svg?color=orange)](#sponsors)
+[![Test](https://img.shields.io/github/workflow/status/Level/multileveldown/Test?label=test)](https://github.com/Level/multileveldown/actions/workflows/test.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/Level/multileveldown?label=&logo=codecov&logoColor=fff)](https://codecov.io/gh/Level/multileveldown)
+[![Standard](https://img.shields.io/badge/standard-informational?logo=javascript&logoColor=fff)](https://standardjs.com)
+[![Common Changelog](https://common-changelog.org/badge.svg)](https://common-changelog.org)
+[![Donate](https://img.shields.io/badge/donate-orange?logo=open-collective&logoColor=fff)](https://opencollective.com/level)
 
 ## Usage
 
 Similar to [`multilevel`](https://github.com/juliangruber/multilevel) you can use this to share a `levelup` database across multiple processes over a stream. In addition `multileveldown` supports seamless retry so you can reconnect to a server without your read streams / puts failing etc.
 
-First create a server
+First create a server:
 
 ```js
-var multileveldown = require('multileveldown')
-var level = require('level')
-var net = require('net')
+const multileveldown = require('multileveldown')
+const level = require('level')
+const net = require('net')
 
-var db = level('db')
+const db = level('db')
 
-var server = net.createServer(function (sock) {
+const server = net.createServer(function (sock) {
   sock.on('error', function () {
     sock.destroy()
   })
@@ -36,15 +35,15 @@ var server = net.createServer(function (sock) {
 server.listen(9000)
 ```
 
-Then create some clients
+Then create some clients:
 
 ```js
-var multileveldown = require('multileveldown')
-var net = require('net')
+const multileveldown = require('multileveldown')
+const net = require('net')
 
-var db = multileveldown.client()
+const db = multileveldown.client()
 
-var sock = net.connect(9000)
+const sock = net.connect(9000)
 sock.pipe(db.connect()).pipe(sock)
 
 db.put('hello', 'world', function () {
@@ -54,19 +53,19 @@ db.put('hello', 'world', function () {
 
 ## Reconnect
 
-To setup reconnect in your client simply set `retry: true` and reconnect to your server when the connection fails
+To setup reconnect in your client simply set `retry: true` and reconnect to your server when the connection fails:
 
 ```js
-var multileveldown = require('multileveldown')
-var net = require('net')
+const multileveldown = require('multileveldown')
+const net = require('net')
 
-var db = multileveldown.client({
+const db = multileveldown.client({
   retry: true
 })
 
-var connect = function () {
-  var sock = net.connect(9000)
-  var remote = db.connect()
+const connect = function () {
+  const sock = net.connect(9000)
+  const remote = db.connect()
 
   sock.on('error', function () {
     sock.destroy()
@@ -91,7 +90,7 @@ stream you are missing. Please note that this might not guarantee leveldb snapsh
 
 #### `multileveldown.server(db, [options])`
 
-Returns a new duplex server stream that you should connect with a client. Options include
+Returns a new duplex server stream that you should connect with a client. Options include:
 
 ```js
 {
@@ -133,18 +132,10 @@ See the [Contribution Guide](https://github.com/Level/community/blob/master/CONT
 
 ## Donate
 
-To sustain [`Level`](https://github.com/Level) and its activities, become a backer or sponsor on [Open Collective](https://opencollective.com/level). Your logo or avatar will be displayed on our 28+ [GitHub repositories](https://github.com/Level) and [npm](https://www.npmjs.com/) packages. 💖
-
-### Backers
-
-[![Open Collective backers](https://opencollective.com/level/backers.svg?width=890)](https://opencollective.com/level)
-
-### Sponsors
-
-[![Open Collective sponsors](https://opencollective.com/level/sponsors.svg?width=890)](https://opencollective.com/level)
+Support us with a monthly donation on [Open Collective](https://opencollective.com/level) and help us continue our work.
 
 ## License
 
-[MIT](LICENSE.md) © 2015-present Mathias Buus and contributors.
+[MIT](LICENSE)
 
 [level-badge]: https://leveljs.org/img/badge.svg

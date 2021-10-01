@@ -13,6 +13,17 @@
     "dependency-check": "dependency-check --no-dev .",
     "prepublishOnly": "npm run dependency-check"
   },
+  "files": [
+    "client.js",
+    "index.js",
+    "leveldown.js",
+    "matchdown.js",
+    "messages.js",
+    "server.js",
+    "streams.js",
+    "CHANGELOG.md",
+    "UPGRADING.md"
+  ],
   "dependencies": {
     "abstract-leveldown": "^7.2.0",
     "duplexify": "^4.1.1",
@@ -30,7 +41,6 @@
     "dependency-check": "^4.1.0",
     "faucet": "^0.0.1",
     "hallmark": "^3.1.0",
-    "level-community": "^3.0.0",
     "level-compose": "^1.0.0",
     "memdown": "^6.0.0",
     "nyc": "^15.1.0",
@@ -38,9 +48,6 @@
     "standard": "^16.0.3",
     "subleveldown": "^6.0.0",
     "tape": "^5.0.1"
-  },
-  "hallmark": {
-    "community": "level-community"
   },
   "repository": {
     "type": "git",
