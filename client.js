@@ -7,7 +7,7 @@ const leveldown = require('./leveldown')
 module.exports = function (opts) {
   if (!opts) opts = {}
 
-  const down = leveldown(Object.assign({}, opts, { onflush: onflush }))
+  const down = leveldown({ ...opts, onflush })
   const db = levelup(encode(down, opts), opts)
 
   // TODO: fix in levelup

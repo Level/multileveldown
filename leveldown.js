@@ -1,8 +1,7 @@
 'use strict'
 
 const duplexify = require('duplexify')
-const abstract = require('abstract-leveldown')
-const util = require('util')
+const { AbstractLevelDOWN } = require('abstract-leveldown')
 const eos = require('end-of-stream')
 const ids = require('numeric-id-map')
 const lpstream = require('length-prefixed-stream')
@@ -27,7 +26,7 @@ module.exports = Multilevel
 
 function Multilevel (opts) {
   if (!(this instanceof Multilevel)) return new Multilevel(opts)
-  abstract.AbstractLevelDOWN.call(this)
+  AbstractLevelDOWN.call(this)
 
   if (!opts) opts = {}
   this._iterators = ids()
@@ -40,7 +39,7 @@ function Multilevel (opts) {
   this._db = null
 }
 
-util.inherits(Multilevel, abstract.AbstractLevelDOWN)
+Object.setPrototypeOf(Multilevel.prototype, AbstractLevelDOWN.prototype)
 
 Multilevel.prototype.type = 'multileveldown'
 

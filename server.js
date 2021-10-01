@@ -5,8 +5,10 @@ const eos = require('end-of-stream')
 const duplexify = require('duplexify')
 const reachdown = require('reachdown')
 const messages = require('./messages')
-const rangeOptions = 'gt gte lt lte'.split(' ')
 const matchdown = require('./matchdown')
+
+const rangeOptions = ['gt', 'gte', 'lt', 'lte']
+const noop = () => {}
 
 const DECODERS = [
   messages.Get,
@@ -140,12 +142,21 @@ module.exports = function (db, opts) {
 }
 
 function Iterator (down, req, encode) {
-  const self = this
-
   this.batch = req.batch || 0
   this._iterator = down.iterator(cleanRangeOptions(req.options))
   this._encode = encode
-  this._send = send
+  this._send = (err, key, value) => {
+    this._nexting = false
+    this._data.error = err && err.message
+    this._data.key = key
+    this._data.value = value
+    this.batch--
+    const buf = Buffer.allocUnsafe(messages.IteratorData.encodingLength(this._data) + 1)
+    buf[0] = 1
+    messages.IteratorData.encode(this._data, buf, 1)
+    encode.write(buf)
+    this.next()
+  }
   this._nexting = false
   this._first = true
   this._ended = false
@@ -154,19 +165,6 @@ function Iterator (down, req, encode) {
     error: null,
     key: null,
     value: null
-  }
-
-  function send (err, key, value) {
-    self._nexting = false
-    self._data.error = err && err.message
-    self._data.key = key
-    self._data.value = value
-    self.batch--
-    const buf = Buffer.allocUnsafe(messages.IteratorData.encodingLength(self._data) + 1)
-    buf[0] = 1
-    messages.IteratorData.encode(self._data, buf, 1)
-    encode.write(buf)
-    self.next()
   }
 }
 
@@ -182,8 +180,6 @@ Iterator.prototype.end = function () {
   this._ended = true
   this._iterator.end(noop)
 }
-
-function noop () {}
 
 function cleanRangeOptions (options) {
   if (!options) return
@@ -202,5 +198,5 @@ function cleanRangeOptions (options) {
 }
 
 function isRangeOption (k) {
-  return rangeOptions.indexOf(k) !== -1
+  return rangeOptions.includes(k)
 }
