@@ -68,11 +68,6 @@ defineCallback()
 defineIteratorData()
 
 function defineGet () {
-  var enc = [
-    encodings.varint,
-    encodings.bytes
-  ]
-
   Get.encodingLength = encodingLength
   Get.encode = encode
   Get.decode = decode
@@ -80,10 +75,10 @@ function defineGet () {
   function encodingLength (obj) {
     var length = 0
     if (!defined(obj.id)) throw new Error("id is required")
-    var len = enc[0].encodingLength(obj.id)
+    var len = encodings.varint.encodingLength(obj.id)
     length += 1 + len
     if (!defined(obj.key)) throw new Error("key is required")
-    var len = enc[1].encodingLength(obj.key)
+    var len = encodings.bytes.encodingLength(obj.key)
     length += 1 + len
     return length
   }
@@ -94,12 +89,12 @@ function defineGet () {
     var oldOffset = offset
     if (!defined(obj.id)) throw new Error("id is required")
     buf[offset++] = 8
-    enc[0].encode(obj.id, buf, offset)
-    offset += enc[0].encode.bytes
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
     if (!defined(obj.key)) throw new Error("key is required")
     buf[offset++] = 18
-    enc[1].encode(obj.key, buf, offset)
-    offset += enc[1].encode.bytes
+    encodings.bytes.encode(obj.key, buf, offset)
+    offset += encodings.bytes.encode.bytes
     encode.bytes = offset - oldOffset
     return buf
   }
@@ -126,13 +121,13 @@ function defineGet () {
       var tag = prefix >> 3
       switch (tag) {
         case 1:
-        obj.id = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         found0 = true
         break
         case 2:
-        obj.key = enc[1].decode(buf, offset)
-        offset += enc[1].decode.bytes
+        obj.key = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         found1 = true
         break
         default:
@@ -143,11 +138,6 @@ function defineGet () {
 }
 
 function definePut () {
-  var enc = [
-    encodings.varint,
-    encodings.bytes
-  ]
-
   Put.encodingLength = encodingLength
   Put.encode = encode
   Put.decode = decode
@@ -155,13 +145,13 @@ function definePut () {
   function encodingLength (obj) {
     var length = 0
     if (!defined(obj.id)) throw new Error("id is required")
-    var len = enc[0].encodingLength(obj.id)
+    var len = encodings.varint.encodingLength(obj.id)
     length += 1 + len
     if (!defined(obj.key)) throw new Error("key is required")
-    var len = enc[1].encodingLength(obj.key)
+    var len = encodings.bytes.encodingLength(obj.key)
     length += 1 + len
     if (defined(obj.value)) {
-      var len = enc[1].encodingLength(obj.value)
+      var len = encodings.bytes.encodingLength(obj.value)
       length += 1 + len
     }
     return length
@@ -173,16 +163,16 @@ function definePut () {
     var oldOffset = offset
     if (!defined(obj.id)) throw new Error("id is required")
     buf[offset++] = 8
-    enc[0].encode(obj.id, buf, offset)
-    offset += enc[0].encode.bytes
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
     if (!defined(obj.key)) throw new Error("key is required")
     buf[offset++] = 18
-    enc[1].encode(obj.key, buf, offset)
-    offset += enc[1].encode.bytes
+    encodings.bytes.encode(obj.key, buf, offset)
+    offset += encodings.bytes.encode.bytes
     if (defined(obj.value)) {
       buf[offset++] = 26
-      enc[1].encode(obj.value, buf, offset)
-      offset += enc[1].encode.bytes
+      encodings.bytes.encode(obj.value, buf, offset)
+      offset += encodings.bytes.encode.bytes
     }
     encode.bytes = offset - oldOffset
     return buf
@@ -211,18 +201,18 @@ function definePut () {
       var tag = prefix >> 3
       switch (tag) {
         case 1:
-        obj.id = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         found0 = true
         break
         case 2:
-        obj.key = enc[1].decode(buf, offset)
-        offset += enc[1].decode.bytes
+        obj.key = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         found1 = true
         break
         case 3:
-        obj.value = enc[1].decode(buf, offset)
-        offset += enc[1].decode.bytes
+        obj.value = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)
@@ -232,11 +222,6 @@ function definePut () {
 }
 
 function defineDelete () {
-  var enc = [
-    encodings.varint,
-    encodings.bytes
-  ]
-
   Delete.encodingLength = encodingLength
   Delete.encode = encode
   Delete.decode = decode
@@ -244,10 +229,10 @@ function defineDelete () {
   function encodingLength (obj) {
     var length = 0
     if (!defined(obj.id)) throw new Error("id is required")
-    var len = enc[0].encodingLength(obj.id)
+    var len = encodings.varint.encodingLength(obj.id)
     length += 1 + len
     if (!defined(obj.key)) throw new Error("key is required")
-    var len = enc[1].encodingLength(obj.key)
+    var len = encodings.bytes.encodingLength(obj.key)
     length += 1 + len
     return length
   }
@@ -258,12 +243,12 @@ function defineDelete () {
     var oldOffset = offset
     if (!defined(obj.id)) throw new Error("id is required")
     buf[offset++] = 8
-    enc[0].encode(obj.id, buf, offset)
-    offset += enc[0].encode.bytes
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
     if (!defined(obj.key)) throw new Error("key is required")
     buf[offset++] = 18
-    enc[1].encode(obj.key, buf, offset)
-    offset += enc[1].encode.bytes
+    encodings.bytes.encode(obj.key, buf, offset)
+    offset += encodings.bytes.encode.bytes
     encode.bytes = offset - oldOffset
     return buf
   }
@@ -290,13 +275,13 @@ function defineDelete () {
       var tag = prefix >> 3
       switch (tag) {
         case 1:
-        obj.id = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         found0 = true
         break
         case 2:
-        obj.key = enc[1].decode(buf, offset)
-        offset += enc[1].decode.bytes
+        obj.key = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         found1 = true
         break
         default:
@@ -317,11 +302,6 @@ function defineBatch () {
   defineOperation()
 
   function defineOperation () {
-    var enc = [
-      encodings.string,
-      encodings.bytes
-    ]
-
     Operation.encodingLength = encodingLength
     Operation.encode = encode
     Operation.decode = decode
@@ -329,13 +309,13 @@ function defineBatch () {
     function encodingLength (obj) {
       var length = 0
       if (!defined(obj.type)) throw new Error("type is required")
-      var len = enc[0].encodingLength(obj.type)
+      var len = encodings.string.encodingLength(obj.type)
       length += 1 + len
       if (!defined(obj.key)) throw new Error("key is required")
-      var len = enc[1].encodingLength(obj.key)
+      var len = encodings.bytes.encodingLength(obj.key)
       length += 1 + len
       if (defined(obj.value)) {
-        var len = enc[1].encodingLength(obj.value)
+        var len = encodings.bytes.encodingLength(obj.value)
         length += 1 + len
       }
       return length
@@ -347,16 +327,16 @@ function defineBatch () {
       var oldOffset = offset
       if (!defined(obj.type)) throw new Error("type is required")
       buf[offset++] = 10
-      enc[0].encode(obj.type, buf, offset)
-      offset += enc[0].encode.bytes
+      encodings.string.encode(obj.type, buf, offset)
+      offset += encodings.string.encode.bytes
       if (!defined(obj.key)) throw new Error("key is required")
       buf[offset++] = 18
-      enc[1].encode(obj.key, buf, offset)
-      offset += enc[1].encode.bytes
+      encodings.bytes.encode(obj.key, buf, offset)
+      offset += encodings.bytes.encode.bytes
       if (defined(obj.value)) {
         buf[offset++] = 26
-        enc[1].encode(obj.value, buf, offset)
-        offset += enc[1].encode.bytes
+        encodings.bytes.encode(obj.value, buf, offset)
+        offset += encodings.bytes.encode.bytes
       }
       encode.bytes = offset - oldOffset
       return buf
@@ -385,18 +365,18 @@ function defineBatch () {
         var tag = prefix >> 3
         switch (tag) {
           case 1:
-          obj.type = enc[0].decode(buf, offset)
-          offset += enc[0].decode.bytes
+          obj.type = encodings.string.decode(buf, offset)
+          offset += encodings.string.decode.bytes
           found0 = true
           break
           case 2:
-          obj.key = enc[1].decode(buf, offset)
-          offset += enc[1].decode.bytes
+          obj.key = encodings.bytes.decode(buf, offset)
+          offset += encodings.bytes.decode.bytes
           found1 = true
           break
           case 3:
-          obj.value = enc[1].decode(buf, offset)
-          offset += enc[1].decode.bytes
+          obj.value = encodings.bytes.decode(buf, offset)
+          offset += encodings.bytes.decode.bytes
           break
           default:
           offset = skip(prefix & 7, buf, offset)
@@ -405,11 +385,6 @@ function defineBatch () {
     }
   }
 
-  var enc = [
-    encodings.varint,
-    Operation
-  ]
-
   Batch.encodingLength = encodingLength
   Batch.encode = encode
   Batch.decode = decode
@@ -417,12 +392,12 @@ function defineBatch () {
   function encodingLength (obj) {
     var length = 0
     if (!defined(obj.id)) throw new Error("id is required")
-    var len = enc[0].encodingLength(obj.id)
+    var len = encodings.varint.encodingLength(obj.id)
     length += 1 + len
     if (defined(obj.ops)) {
       for (var i = 0; i < obj.ops.length; i++) {
         if (!defined(obj.ops[i])) continue
-        var len = enc[1].encodingLength(obj.ops[i])
+        var len = Operation.encodingLength(obj.ops[i])
         length += varint.encodingLength(len)
         length += 1 + len
       }
@@ -436,16 +411,16 @@ function defineBatch () {
     var oldOffset = offset
     if (!defined(obj.id)) throw new Error("id is required")
     buf[offset++] = 8
-    enc[0].encode(obj.id, buf, offset)
-    offset += enc[0].encode.bytes
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
     if (defined(obj.ops)) {
       for (var i = 0; i < obj.ops.length; i++) {
         if (!defined(obj.ops[i])) continue
         buf[offset++] = 18
-        varint.encode(enc[1].encodingLength(obj.ops[i]), buf, offset)
+        varint.encode(Operation.encodingLength(obj.ops[i]), buf, offset)
         offset += varint.encode.bytes
-        enc[1].encode(obj.ops[i], buf, offset)
-        offset += enc[1].encode.bytes
+        Operation.encode(obj.ops[i], buf, offset)
+        offset += Operation.encode.bytes
       }
     }
     encode.bytes = offset - oldOffset
@@ -473,15 +448,15 @@ function defineBatch () {
       var tag = prefix >> 3
       switch (tag) {
         case 1:
-        obj.id = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         found0 = true
         break
         case 2:
         var len = varint.decode(buf, offset)
         offset += varint.decode.bytes
-        obj.ops.push(enc[1].decode(buf, offset, offset + len))
-        offset += enc[1].decode.bytes
+        obj.ops.push(Operation.decode(buf, offset, offset + len))
+        offset += Operation.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)
@@ -501,12 +476,6 @@ function defineIterator () {
   defineOptions()
 
   function defineOptions () {
-    var enc = [
-      encodings.bool,
-      encodings.bytes,
-      encodings.sint64
-    ]
-
     Options.encodingLength = encodingLength
     Options.encode = encode
     Options.decode = decode
@@ -514,35 +483,35 @@ function defineIterator () {
     function encodingLength (obj) {
       var length = 0
       if (defined(obj.keys)) {
-        var len = enc[0].encodingLength(obj.keys)
+        var len = encodings.bool.encodingLength(obj.keys)
         length += 1 + len
       }
       if (defined(obj.values)) {
-        var len = enc[0].encodingLength(obj.values)
+        var len = encodings.bool.encodingLength(obj.values)
         length += 1 + len
       }
       if (defined(obj.gt)) {
-        var len = enc[1].encodingLength(obj.gt)
+        var len = encodings.bytes.encodingLength(obj.gt)
         length += 1 + len
       }
       if (defined(obj.gte)) {
-        var len = enc[1].encodingLength(obj.gte)
+        var len = encodings.bytes.encodingLength(obj.gte)
         length += 1 + len
       }
       if (defined(obj.lt)) {
-        var len = enc[1].encodingLength(obj.lt)
+        var len = encodings.bytes.encodingLength(obj.lt)
         length += 1 + len
       }
       if (defined(obj.lte)) {
-        var len = enc[1].encodingLength(obj.lte)
+        var len = encodings.bytes.encodingLength(obj.lte)
         length += 1 + len
       }
       if (defined(obj.limit)) {
-        var len = enc[2].encodingLength(obj.limit)
+        var len = encodings.sint64.encodingLength(obj.limit)
         length += 1 + len
       }
       if (defined(obj.reverse)) {
-        var len = enc[0].encodingLength(obj.reverse)
+        var len = encodings.bool.encodingLength(obj.reverse)
         length += 1 + len
       }
       return length
@@ -554,43 +523,43 @@ function defineIterator () {
       var oldOffset = offset
       if (defined(obj.keys)) {
         buf[offset++] = 8
-        enc[0].encode(obj.keys, buf, offset)
-        offset += enc[0].encode.bytes
+        encodings.bool.encode(obj.keys, buf, offset)
+        offset += encodings.bool.encode.bytes
       }
       if (defined(obj.values)) {
         buf[offset++] = 16
-        enc[0].encode(obj.values, buf, offset)
-        offset += enc[0].encode.bytes
+        encodings.bool.encode(obj.values, buf, offset)
+        offset += encodings.bool.encode.bytes
       }
       if (defined(obj.gt)) {
         buf[offset++] = 26
-        enc[1].encode(obj.gt, buf, offset)
-        offset += enc[1].encode.bytes
+        encodings.bytes.encode(obj.gt, buf, offset)
+        offset += encodings.bytes.encode.bytes
       }
       if (defined(obj.gte)) {
         buf[offset++] = 34
-        enc[1].encode(obj.gte, buf, offset)
-        offset += enc[1].encode.bytes
+        encodings.bytes.encode(obj.gte, buf, offset)
+        offset += encodings.bytes.encode.bytes
       }
       if (defined(obj.lt)) {
         buf[offset++] = 42
-        enc[1].encode(obj.lt, buf, offset)
-        offset += enc[1].encode.bytes
+        encodings.bytes.encode(obj.lt, buf, offset)
+        offset += encodings.bytes.encode.bytes
       }
       if (defined(obj.lte)) {
         buf[offset++] = 50
-        enc[1].encode(obj.lte, buf, offset)
-        offset += enc[1].encode.bytes
+        encodings.bytes.encode(obj.lte, buf, offset)
+        offset += encodings.bytes.encode.bytes
       }
       if (defined(obj.limit)) {
         buf[offset++] = 56
-        enc[2].encode(obj.limit, buf, offset)
-        offset += enc[2].encode.bytes
+        encodings.sint64.encode(obj.limit, buf, offset)
+        offset += encodings.sint64.encode.bytes
       }
       if (defined(obj.reverse)) {
         buf[offset++] = 64
-        enc[0].encode(obj.reverse, buf, offset)
-        offset += enc[0].encode.bytes
+        encodings.bool.encode(obj.reverse, buf, offset)
+        offset += encodings.bool.encode.bytes
       }
       encode.bytes = offset - oldOffset
       return buf
@@ -621,36 +590,36 @@ function defineIterator () {
         var tag = prefix >> 3
         switch (tag) {
           case 1:
-          obj.keys = enc[0].decode(buf, offset)
-          offset += enc[0].decode.bytes
+          obj.keys = encodings.bool.decode(buf, offset)
+          offset += encodings.bool.decode.bytes
           break
           case 2:
-          obj.values = enc[0].decode(buf, offset)
-          offset += enc[0].decode.bytes
+          obj.values = encodings.bool.decode(buf, offset)
+          offset += encodings.bool.decode.bytes
           break
           case 3:
-          obj.gt = enc[1].decode(buf, offset)
-          offset += enc[1].decode.bytes
+          obj.gt = encodings.bytes.decode(buf, offset)
+          offset += encodings.bytes.decode.bytes
           break
           case 4:
-          obj.gte = enc[1].decode(buf, offset)
-          offset += enc[1].decode.bytes
+          obj.gte = encodings.bytes.decode(buf, offset)
+          offset += encodings.bytes.decode.bytes
           break
           case 5:
-          obj.lt = enc[1].decode(buf, offset)
-          offset += enc[1].decode.bytes
+          obj.lt = encodings.bytes.decode(buf, offset)
+          offset += encodings.bytes.decode.bytes
           break
           case 6:
-          obj.lte = enc[1].decode(buf, offset)
-          offset += enc[1].decode.bytes
+          obj.lte = encodings.bytes.decode(buf, offset)
+          offset += encodings.bytes.decode.bytes
           break
           case 7:
-          obj.limit = enc[2].decode(buf, offset)
-          offset += enc[2].decode.bytes
+          obj.limit = encodings.sint64.decode(buf, offset)
+          offset += encodings.sint64.decode.bytes
           break
           case 8:
-          obj.reverse = enc[0].decode(buf, offset)
-          offset += enc[0].decode.bytes
+          obj.reverse = encodings.bool.decode(buf, offset)
+          offset += encodings.bool.decode.bytes
           break
           default:
           offset = skip(prefix & 7, buf, offset)
@@ -659,11 +628,6 @@ function defineIterator () {
     }
   }
 
-  var enc = [
-    encodings.varint,
-    Options
-  ]
-
   Iterator.encodingLength = encodingLength
   Iterator.encode = encode
   Iterator.decode = decode
@@ -671,14 +635,14 @@ function defineIterator () {
   function encodingLength (obj) {
     var length = 0
     if (!defined(obj.id)) throw new Error("id is required")
-    var len = enc[0].encodingLength(obj.id)
+    var len = encodings.varint.encodingLength(obj.id)
     length += 1 + len
     if (defined(obj.batch)) {
-      var len = enc[0].encodingLength(obj.batch)
+      var len = encodings.varint.encodingLength(obj.batch)
       length += 1 + len
     }
     if (defined(obj.options)) {
-      var len = enc[1].encodingLength(obj.options)
+      var len = Options.encodingLength(obj.options)
       length += varint.encodingLength(len)
       length += 1 + len
     }
@@ -691,19 +655,19 @@ function defineIterator () {
     var oldOffset = offset
     if (!defined(obj.id)) throw new Error("id is required")
     buf[offset++] = 8
-    enc[0].encode(obj.id, buf, offset)
-    offset += enc[0].encode.bytes
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
     if (defined(obj.batch)) {
       buf[offset++] = 16
-      enc[0].encode(obj.batch, buf, offset)
-      offset += enc[0].encode.bytes
+      encodings.varint.encode(obj.batch, buf, offset)
+      offset += encodings.varint.encode.bytes
     }
     if (defined(obj.options)) {
       buf[offset++] = 26
-      varint.encode(enc[1].encodingLength(obj.options), buf, offset)
+      varint.encode(Options.encodingLength(obj.options), buf, offset)
       offset += varint.encode.bytes
-      enc[1].encode(obj.options, buf, offset)
-      offset += enc[1].encode.bytes
+      Options.encode(obj.options, buf, offset)
+      offset += Options.encode.bytes
     }
     encode.bytes = offset - oldOffset
     return buf
@@ -731,19 +695,19 @@ function defineIterator () {
       var tag = prefix >> 3
       switch (tag) {
         case 1:
-        obj.id = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         found0 = true
         break
         case 2:
-        obj.batch = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.batch = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         break
         case 3:
         var len = varint.decode(buf, offset)
         offset += varint.decode.bytes
-        obj.options = enc[1].decode(buf, offset, offset + len)
-        offset += enc[1].decode.bytes
+        obj.options = Options.decode(buf, offset, offset + len)
+        offset += Options.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)
@@ -753,12 +717,6 @@ function defineIterator () {
 }
 
 function defineCallback () {
-  var enc = [
-    encodings.varint,
-    encodings.string,
-    encodings.bytes
-  ]
-
   Callback.encodingLength = encodingLength
   Callback.encode = encode
   Callback.decode = decode
@@ -766,14 +724,14 @@ function defineCallback () {
   function encodingLength (obj) {
     var length = 0
     if (!defined(obj.id)) throw new Error("id is required")
-    var len = enc[0].encodingLength(obj.id)
+    var len = encodings.varint.encodingLength(obj.id)
     length += 1 + len
     if (defined(obj.error)) {
-      var len = enc[1].encodingLength(obj.error)
+      var len = encodings.string.encodingLength(obj.error)
       length += 1 + len
     }
     if (defined(obj.value)) {
-      var len = enc[2].encodingLength(obj.value)
+      var len = encodings.bytes.encodingLength(obj.value)
       length += 1 + len
     }
     return length
@@ -785,17 +743,17 @@ function defineCallback () {
     var oldOffset = offset
     if (!defined(obj.id)) throw new Error("id is required")
     buf[offset++] = 8
-    enc[0].encode(obj.id, buf, offset)
-    offset += enc[0].encode.bytes
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
     if (defined(obj.error)) {
       buf[offset++] = 18
-      enc[1].encode(obj.error, buf, offset)
-      offset += enc[1].encode.bytes
+      encodings.string.encode(obj.error, buf, offset)
+      offset += encodings.string.encode.bytes
     }
     if (defined(obj.value)) {
       buf[offset++] = 26
-      enc[2].encode(obj.value, buf, offset)
-      offset += enc[2].encode.bytes
+      encodings.bytes.encode(obj.value, buf, offset)
+      offset += encodings.bytes.encode.bytes
     }
     encode.bytes = offset - oldOffset
     return buf
@@ -823,17 +781,17 @@ function defineCallback () {
       var tag = prefix >> 3
       switch (tag) {
         case 1:
-        obj.id = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         found0 = true
         break
         case 2:
-        obj.error = enc[1].decode(buf, offset)
-        offset += enc[1].decode.bytes
+        obj.error = encodings.string.decode(buf, offset)
+        offset += encodings.string.decode.bytes
         break
         case 3:
-        obj.value = enc[2].decode(buf, offset)
-        offset += enc[2].decode.bytes
+        obj.value = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)
@@ -843,12 +801,6 @@ function defineCallback () {
 }
 
 function defineIteratorData () {
-  var enc = [
-    encodings.varint,
-    encodings.string,
-    encodings.bytes
-  ]
-
   IteratorData.encodingLength = encodingLength
   IteratorData.encode = encode
   IteratorData.decode = decode
@@ -856,18 +808,18 @@ function defineIteratorData () {
   function encodingLength (obj) {
     var length = 0
     if (!defined(obj.id)) throw new Error("id is required")
-    var len = enc[0].encodingLength(obj.id)
+    var len = encodings.varint.encodingLength(obj.id)
     length += 1 + len
     if (defined(obj.error)) {
-      var len = enc[1].encodingLength(obj.error)
+      var len = encodings.string.encodingLength(obj.error)
       length += 1 + len
     }
     if (defined(obj.key)) {
-      var len = enc[2].encodingLength(obj.key)
+      var len = encodings.bytes.encodingLength(obj.key)
       length += 1 + len
     }
     if (defined(obj.value)) {
-      var len = enc[2].encodingLength(obj.value)
+      var len = encodings.bytes.encodingLength(obj.value)
       length += 1 + len
     }
     return length
@@ -879,22 +831,22 @@ function defineIteratorData () {
     var oldOffset = offset
     if (!defined(obj.id)) throw new Error("id is required")
     buf[offset++] = 8
-    enc[0].encode(obj.id, buf, offset)
-    offset += enc[0].encode.bytes
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
     if (defined(obj.error)) {
       buf[offset++] = 18
-      enc[1].encode(obj.error, buf, offset)
-      offset += enc[1].encode.bytes
+      encodings.string.encode(obj.error, buf, offset)
+      offset += encodings.string.encode.bytes
     }
     if (defined(obj.key)) {
       buf[offset++] = 26
-      enc[2].encode(obj.key, buf, offset)
-      offset += enc[2].encode.bytes
+      encodings.bytes.encode(obj.key, buf, offset)
+      offset += encodings.bytes.encode.bytes
     }
     if (defined(obj.value)) {
       buf[offset++] = 34
-      enc[2].encode(obj.value, buf, offset)
-      offset += enc[2].encode.bytes
+      encodings.bytes.encode(obj.value, buf, offset)
+      offset += encodings.bytes.encode.bytes
     }
     encode.bytes = offset - oldOffset
     return buf
@@ -923,21 +875,21 @@ function defineIteratorData () {
       var tag = prefix >> 3
       switch (tag) {
         case 1:
-        obj.id = enc[0].decode(buf, offset)
-        offset += enc[0].decode.bytes
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         found0 = true
         break
         case 2:
-        obj.error = enc[1].decode(buf, offset)
-        offset += enc[1].decode.bytes
+        obj.error = encodings.string.decode(buf, offset)
+        offset += encodings.string.decode.bytes
         break
         case 3:
-        obj.key = enc[2].decode(buf, offset)
-        offset += enc[2].decode.bytes
+        obj.key = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         break
         case 4:
-        obj.value = enc[2].decode(buf, offset)
-        offset += enc[2].decode.bytes
+        obj.value = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)
