@@ -14,7 +14,8 @@ const ENCODERS = [
   messages.Put,
   messages.Delete,
   messages.Batch,
-  messages.Iterator
+  messages.Iterator,
+  messages.Clear
 ]
 
 const DECODERS = [
@@ -210,6 +211,20 @@ Multilevel.prototype._batch = function (batch, opts, cb) {
     tag: 3,
     id: 0,
     ops: batch,
+    callback: cb || noop
+  }
+
+  req.id = this._requests.add(req)
+  this._write(req)
+}
+
+Multilevel.prototype._clear = function (opts, cb) {
+  if (this._db) return this._db._clear(opts, cb)
+
+  const req = {
+    tag: 5,
+    id: 0,
+    options: opts,
     callback: cb || noop
   }
 

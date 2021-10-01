@@ -15,7 +15,8 @@ const DECODERS = [
   messages.Put,
   messages.Delete,
   messages.Batch,
-  messages.Iterator
+  messages.Iterator,
+  messages.Clear
 ]
 
 module.exports = function (db, opts) {
@@ -66,6 +67,7 @@ module.exports = function (db, opts) {
           case 2: return onreadonly(req)
           case 3: return onreadonly(req)
           case 4: return oniterator(req)
+          case 5: return onreadonly(req)
         }
       } else {
         switch (tag) {
@@ -74,6 +76,7 @@ module.exports = function (db, opts) {
           case 2: return ondel(req)
           case 3: return onbatch(req)
           case 4: return oniterator(req)
+          case 5: return onclear(req)
         }
       }
     })
@@ -137,6 +140,12 @@ module.exports = function (db, opts) {
         prev.batch = req.batch
         prev.next()
       }
+    }
+
+    function onclear (req) {
+      down.clear(cleanRangeOptions(req.options), function (err) {
+        callback(req.id, err)
+      })
     }
   }
 }
