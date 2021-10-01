@@ -15,12 +15,14 @@ const ENCODERS = [
   messages.Delete,
   messages.Batch,
   messages.Iterator,
-  messages.Clear
+  messages.Clear,
+  messages.GetMany
 ]
 
 const DECODERS = [
   messages.Callback,
-  messages.IteratorData
+  messages.IteratorData,
+  messages.GetManyCallback
 ]
 
 module.exports = Multilevel
@@ -34,7 +36,7 @@ function Multilevel (opts) {
     permanence: true,
     seek: false,
     clear: true,
-    getMany: false,
+    getMany: true,
     createIfMissing: false,
     errorIfExists: false
   })
@@ -84,6 +86,10 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
       case 1:
         oniteratordata(res)
         break
+
+      case 2:
+        ongetmanycallback(res)
+        break
     }
 
     self._flushMaybe()
@@ -130,6 +136,11 @@ Multilevel.prototype.createRpcStream = function (opts, proxy) {
   function oncallback (res) {
     const req = self._requests.remove(res.id)
     if (req) req.callback(decodeError(res.error), decodeValue(res.value, req.valueAsBuffer))
+  }
+
+  function ongetmanycallback (res) {
+    const req = self._requests.remove(res.id)
+    if (req) req.callback(decodeError(res.error), res.values.map(v => decodeValue(v.value, req.valueAsBuffer)))
   }
 }
 
@@ -179,6 +190,21 @@ Multilevel.prototype._get = function (key, opts, cb) {
     key: key,
     valueAsBuffer: opts.asBuffer,
     callback: cb || noop
+  }
+
+  req.id = this._requests.add(req)
+  this._write(req)
+}
+
+Multilevel.prototype._getMany = function (keys, opts, cb) {
+  if (this._db) return this._db._getMany(keys, opts, cb)
+
+  const req = {
+    tag: 6,
+    id: 0,
+    keys: keys,
+    valueAsBuffer: opts.asBuffer,
+    callback: cb
   }
 
   req.id = this._requests.add(req)

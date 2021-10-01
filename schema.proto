@@ -68,3 +68,19 @@ message IteratorData {
   optional bytes key = 3;
   optional bytes value = 4;
 }
+
+message GetMany {
+  required uint32 id = 1;
+  repeated bytes keys = 2;
+}
+
+message GetManyCallback {
+  required uint32 id = 1;
+  optional string error = 2;
+  repeated Value values = 3;
+
+  // Wrapped to support undefined values
+  message Value {
+    optional bytes value = 1;
+  }
+}

@@ -16,7 +16,8 @@ const DECODERS = [
   messages.Delete,
   messages.Batch,
   messages.Iterator,
-  messages.Clear
+  messages.Clear,
+  messages.GetMany
 ]
 
 module.exports = function (db, opts) {
@@ -68,6 +69,7 @@ module.exports = function (db, opts) {
           case 3: return onreadonly(req)
           case 4: return oniterator(req)
           case 5: return onreadonly(req)
+          case 6: return ongetmany(req)
         }
       } else {
         switch (tag) {
@@ -77,15 +79,24 @@ module.exports = function (db, opts) {
           case 3: return onbatch(req)
           case 4: return oniterator(req)
           case 5: return onclear(req)
+          case 6: return ongetmany(req)
         }
       }
     })
 
     function callback (id, err, value) {
-      const msg = { id: id, error: err && err.message, value: value }
+      const msg = { id, error: err && err.message, value }
       const buf = Buffer.allocUnsafe(messages.Callback.encodingLength(msg) + 1)
-      buf[0] = 0
+      buf[0] = 0 // Tag
       messages.Callback.encode(msg, buf, 1)
+      encode.write(buf)
+    }
+
+    function getManyCallback (id, err, values) {
+      const msg = { id, error: err && err.message, values }
+      const buf = Buffer.allocUnsafe(messages.GetManyCallback.encodingLength(msg) + 1)
+      buf[0] = 2 // Tag
+      messages.GetManyCallback.encode(msg, buf, 1)
       encode.write(buf)
     }
 
@@ -99,8 +110,14 @@ module.exports = function (db, opts) {
     }
 
     function onget (req) {
-      down.get(req.key, function (err, value) {
+      down.get(req.key, { asBuffer: true }, function (err, value) {
         callback(req.id, err, value)
+      })
+    }
+
+    function ongetmany (req) {
+      down.getMany(req.keys, { asBuffer: true }, function (err, values) {
+        getManyCallback(req.id, err, values.map(value => ({ value })))
       })
     }
 

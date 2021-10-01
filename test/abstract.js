@@ -20,13 +20,14 @@ suite({
   },
   seek: false,
   clear: true,
-  getMany: false,
+  getMany: true,
   snapshots: false,
   createIfMissing: false,
   errorIfExists: false,
   bufferKeys: true,
   promises: true,
   status: true,
+  deferredOpen: true,
   serialize: false,
   encodings: true
 })

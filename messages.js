@@ -66,6 +66,20 @@ var IteratorData = exports.IteratorData = {
   decode: null
 }
 
+var GetMany = exports.GetMany = {
+  buffer: true,
+  encodingLength: null,
+  encode: null,
+  decode: null
+}
+
+var GetManyCallback = exports.GetManyCallback = {
+  buffer: true,
+  encodingLength: null,
+  encode: null,
+  decode: null
+}
+
 defineGet()
 definePut()
 defineDelete()
@@ -74,6 +88,8 @@ defineClear()
 defineIterator()
 defineCallback()
 defineIteratorData()
+defineGetMany()
+defineGetManyCallback()
 
 function defineGet () {
   Get.encodingLength = encodingLength
@@ -1107,6 +1123,241 @@ function defineIteratorData () {
         case 4:
         obj.value = encodings.bytes.decode(buf, offset)
         offset += encodings.bytes.decode.bytes
+        break
+        default:
+        offset = skip(prefix & 7, buf, offset)
+      }
+    }
+  }
+}
+
+function defineGetMany () {
+  GetMany.encodingLength = encodingLength
+  GetMany.encode = encode
+  GetMany.decode = decode
+
+  function encodingLength (obj) {
+    var length = 0
+    if (!defined(obj.id)) throw new Error("id is required")
+    var len = encodings.varint.encodingLength(obj.id)
+    length += 1 + len
+    if (defined(obj.keys)) {
+      for (var i = 0; i < obj.keys.length; i++) {
+        if (!defined(obj.keys[i])) continue
+        var len = encodings.bytes.encodingLength(obj.keys[i])
+        length += 1 + len
+      }
+    }
+    return length
+  }
+
+  function encode (obj, buf, offset) {
+    if (!offset) offset = 0
+    if (!buf) buf = Buffer.allocUnsafe(encodingLength(obj))
+    var oldOffset = offset
+    if (!defined(obj.id)) throw new Error("id is required")
+    buf[offset++] = 8
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
+    if (defined(obj.keys)) {
+      for (var i = 0; i < obj.keys.length; i++) {
+        if (!defined(obj.keys[i])) continue
+        buf[offset++] = 18
+        encodings.bytes.encode(obj.keys[i], buf, offset)
+        offset += encodings.bytes.encode.bytes
+      }
+    }
+    encode.bytes = offset - oldOffset
+    return buf
+  }
+
+  function decode (buf, offset, end) {
+    if (!offset) offset = 0
+    if (!end) end = buf.length
+    if (!(end <= buf.length && offset <= buf.length)) throw new Error("Decoded message is not valid")
+    var oldOffset = offset
+    var obj = {
+      id: 0,
+      keys: []
+    }
+    var found0 = false
+    while (true) {
+      if (end <= offset) {
+        if (!found0) throw new Error("Decoded message is not valid")
+        decode.bytes = offset - oldOffset
+        return obj
+      }
+      var prefix = varint.decode(buf, offset)
+      offset += varint.decode.bytes
+      var tag = prefix >> 3
+      switch (tag) {
+        case 1:
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
+        found0 = true
+        break
+        case 2:
+        obj.keys.push(encodings.bytes.decode(buf, offset))
+        offset += encodings.bytes.decode.bytes
+        break
+        default:
+        offset = skip(prefix & 7, buf, offset)
+      }
+    }
+  }
+}
+
+function defineGetManyCallback () {
+  var Value = GetManyCallback.Value = {
+    buffer: true,
+    encodingLength: null,
+    encode: null,
+    decode: null
+  }
+
+  defineValue()
+
+  function defineValue () {
+    Value.encodingLength = encodingLength
+    Value.encode = encode
+    Value.decode = decode
+
+    function encodingLength (obj) {
+      var length = 0
+      if (defined(obj.value)) {
+        var len = encodings.bytes.encodingLength(obj.value)
+        length += 1 + len
+      }
+      return length
+    }
+
+    function encode (obj, buf, offset) {
+      if (!offset) offset = 0
+      if (!buf) buf = Buffer.allocUnsafe(encodingLength(obj))
+      var oldOffset = offset
+      if (defined(obj.value)) {
+        buf[offset++] = 10
+        encodings.bytes.encode(obj.value, buf, offset)
+        offset += encodings.bytes.encode.bytes
+      }
+      encode.bytes = offset - oldOffset
+      return buf
+    }
+
+    function decode (buf, offset, end) {
+      if (!offset) offset = 0
+      if (!end) end = buf.length
+      if (!(end <= buf.length && offset <= buf.length)) throw new Error("Decoded message is not valid")
+      var oldOffset = offset
+      var obj = {
+        value: null
+      }
+      while (true) {
+        if (end <= offset) {
+          decode.bytes = offset - oldOffset
+          return obj
+        }
+        var prefix = varint.decode(buf, offset)
+        offset += varint.decode.bytes
+        var tag = prefix >> 3
+        switch (tag) {
+          case 1:
+          obj.value = encodings.bytes.decode(buf, offset)
+          offset += encodings.bytes.decode.bytes
+          break
+          default:
+          offset = skip(prefix & 7, buf, offset)
+        }
+      }
+    }
+  }
+
+  GetManyCallback.encodingLength = encodingLength
+  GetManyCallback.encode = encode
+  GetManyCallback.decode = decode
+
+  function encodingLength (obj) {
+    var length = 0
+    if (!defined(obj.id)) throw new Error("id is required")
+    var len = encodings.varint.encodingLength(obj.id)
+    length += 1 + len
+    if (defined(obj.error)) {
+      var len = encodings.string.encodingLength(obj.error)
+      length += 1 + len
+    }
+    if (defined(obj.values)) {
+      for (var i = 0; i < obj.values.length; i++) {
+        if (!defined(obj.values[i])) continue
+        var len = Value.encodingLength(obj.values[i])
+        length += varint.encodingLength(len)
+        length += 1 + len
+      }
+    }
+    return length
+  }
+
+  function encode (obj, buf, offset) {
+    if (!offset) offset = 0
+    if (!buf) buf = Buffer.allocUnsafe(encodingLength(obj))
+    var oldOffset = offset
+    if (!defined(obj.id)) throw new Error("id is required")
+    buf[offset++] = 8
+    encodings.varint.encode(obj.id, buf, offset)
+    offset += encodings.varint.encode.bytes
+    if (defined(obj.error)) {
+      buf[offset++] = 18
+      encodings.string.encode(obj.error, buf, offset)
+      offset += encodings.string.encode.bytes
+    }
+    if (defined(obj.values)) {
+      for (var i = 0; i < obj.values.length; i++) {
+        if (!defined(obj.values[i])) continue
+        buf[offset++] = 26
+        varint.encode(Value.encodingLength(obj.values[i]), buf, offset)
+        offset += varint.encode.bytes
+        Value.encode(obj.values[i], buf, offset)
+        offset += Value.encode.bytes
+      }
+    }
+    encode.bytes = offset - oldOffset
+    return buf
+  }
+
+  function decode (buf, offset, end) {
+    if (!offset) offset = 0
+    if (!end) end = buf.length
+    if (!(end <= buf.length && offset <= buf.length)) throw new Error("Decoded message is not valid")
+    var oldOffset = offset
+    var obj = {
+      id: 0,
+      error: "",
+      values: []
+    }
+    var found0 = false
+    while (true) {
+      if (end <= offset) {
+        if (!found0) throw new Error("Decoded message is not valid")
+        decode.bytes = offset - oldOffset
+        return obj
+      }
+      var prefix = varint.decode(buf, offset)
+      offset += varint.decode.bytes
+      var tag = prefix >> 3
+      switch (tag) {
+        case 1:
+        obj.id = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
+        found0 = true
+        break
+        case 2:
+        obj.error = encodings.string.decode(buf, offset)
+        offset += encodings.string.decode.bytes
+        break
+        case 3:
+        var len = varint.decode(buf, offset)
+        offset += varint.decode.bytes
+        obj.values.push(Value.decode(buf, offset, offset + len))
+        offset += Value.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)
