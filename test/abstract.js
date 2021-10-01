@@ -24,9 +24,8 @@ suite({
   createIfMissing: false,
   errorIfExists: false,
   bufferKeys: true,
-  legacyRange: false,
   promises: true,
-  status: false,
+  status: true,
   serialize: false,
   encodings: true
 })
