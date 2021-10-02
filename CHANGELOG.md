@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.0.1] - 2021-10-02
+
+### Fixed
+
+- Bump `levelup` to fix API parity with `abstract-leveldown` ([`77f8f4c`](https://github.com/Level/multileveldown/commit/77f8f4c)) (Vincent Weevers).
+
 ## [5.0.0] - 2021-10-01
 
 _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
@@ -143,6 +149,8 @@ _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 ## [1.0.0] - 2015-04-24
 
 :seedling: Initial release.
+
+[5.0.1]: https://github.com/Level/multileveldown/releases/tag/v5.0.1
 
 [5.0.0]: https://github.com/Level/multileveldown/releases/tag/v5.0.0
 
