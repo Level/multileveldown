@@ -30,10 +30,10 @@
     "encoding-down": "^7.1.0",
     "end-of-stream": "^1.1.0",
     "length-prefixed-stream": "^2.0.0",
-    "levelup": "^5.1.0",
+    "levelup": "^5.1.1",
     "numeric-id-map": "^1.1.0",
     "protocol-buffers-encodings": "^1.1.0",
-    "reachdown": "^1.0.0"
+    "reachdown": "^1.1.0"
   },
   "devDependencies": {
     "@adorsys/encrypt-down": "^2.0.1",
@@ -42,11 +42,11 @@
     "faucet": "^0.0.1",
     "hallmark": "^3.1.0",
     "level-compose": "^1.0.0",
-    "memdown": "^6.0.0",
+    "memdown": "^6.1.0",
     "nyc": "^15.1.0",
     "protocol-buffers": "^4.0.2",
     "standard": "^16.0.3",
-    "subleveldown": "^6.0.0",
+    "subleveldown": "^6.0.1",
     "tape": "^5.0.1"
   },
   "repository": {

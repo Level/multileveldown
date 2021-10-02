@@ -10,16 +10,9 @@ module.exports = function (opts) {
   const down = leveldown({ ...opts, onflush })
   const db = levelup(encode(down, opts), opts)
 
-  // TODO: fix in levelup
-  db.supports.status = true
-
   db.createRpcStream = db.connect = connect
   db.isFlushed = isFlushed
   db.forward = forward
-
-  // Workaround for abstract-leveldown tests that expect db._nextTick
-  // TODO: fix tests or add _nextTick to levelup for API parity
-  if (!db._nextTick) db._nextTick = leveldown.prototype._nextTick
 
   return db
 
