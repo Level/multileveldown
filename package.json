@@ -39,7 +39,7 @@
     "@adorsys/encrypt-down": "^2.0.1",
     "concat-stream": "^2.0.0",
     "dependency-check": "^4.1.0",
-    "faucet": "^0.0.3",
+    "faucet": "^0.0.4",
     "hallmark": "^4.0.0",
     "level-compose": "^1.0.0",
     "memdown": "^6.1.0",
