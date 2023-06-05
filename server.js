@@ -32,7 +32,7 @@ module.exports = function (db, opts) {
   const predel = opts.predel || function (key, cb) { cb(null) }
   const prebatch = opts.prebatch || function (ops, cb) { cb(null) }
 
-  if (db.isOpen()) ready()
+  if (db.isOpen && db.isOpen()) ready()
   else db.open(ready)
 
   return stream
