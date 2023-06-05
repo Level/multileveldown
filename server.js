@@ -33,6 +33,7 @@ module.exports = function (db, opts) {
   const prebatch = opts.prebatch || function (ops, cb) { cb(null) }
 
   if (db.isOpen && db.isOpen()) ready()
+  else if (db.status && db.status === 'open') ready()
   else db.open(ready)
 
   return stream
